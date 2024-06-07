@@ -2,13 +2,13 @@
 
 ## Powered by
 
-* pnpm
-* React
-* Nuxt.JS
-* Chakra UI
-* TypeScript
-* react-icons
-* JavaScript S3 Client
+* [pnpm](https://pnpm.io/)
+* [React](https://react.dev/)
+* [Nuxt.JS](https://nextjs.org/)
+* [Chakra UI](https://v2.chakra-ui.com/)
+* [TypeScript](https://www.typescriptlang.org/)
+* [react-icons](https://react-icons.github.io/react-icons/)
+* [JavaScript S3 Client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-s3)
 
 ## Feature
 
