@@ -3,6 +3,10 @@ applicationName: storage-browser
 deployment:
   replicas: 2
 
+  containerSecurityContext:
+    readOnlyRootFilesystem: true
+    runAsNonRoot: false ## TODO: K8s cannot verify nextjs and nodejs user/group
+
   readinessProbe:
     enabled: true
     failureThreshold: 3
