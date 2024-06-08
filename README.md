@@ -1,6 +1,6 @@
 # ParminCloud S3 Object Storage Browser
 
-https://github.com/ParminCloud/storage-browser/assets/28821440/b746733f-4bae-4b93-9ab7-bc51eb4c06d0
+![Demo Gif](./demo/demo.gif)
 
 ## Powered by
 
@@ -28,7 +28,7 @@ Check out [deployments](./deployments/README.md)
 * [ ] Pagination
 * [ ] Save credentials in browser
 * [ ] Creating and Using more reusable components (specially Modals in page)
-* [ ] More Docs (Screenshot, Deployment) [WIP]
+* [x] More Docs (Screenshot, Deployment)
 
 ## Contributing
 
