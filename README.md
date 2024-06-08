@@ -1,6 +1,6 @@
 # ParminCloud S3 Object Storage Browser
 
-<video src='./demo/demo.mp4'/>
+https://github.com/ParminCloud/storage-browser/assets/28821440/b746733f-4bae-4b93-9ab7-bc51eb4c06d0
 
 ## Powered by
 
