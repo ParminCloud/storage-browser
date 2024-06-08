@@ -1,0 +1,25 @@
+resources:
+  - apiVersion: configuration.konghq.com/v1
+    kind: KongPlugin
+    metadata:
+      name: bot-detection
+    plugin: bot-detection
+    config: {}
+  - apiVersion: configuration.konghq.com/v1beta1
+    kind: KongUpstreamPolicy
+    metadata:
+      name: storage-browser
+    spec:
+      algorithm: least-connections
+      healthchecks:
+        active:
+          type: http
+          httpPath: /
+          healthy:
+            httpStatuses:
+              - 200
+            interval: 5
+            successes: 2
+          unhealthy:
+            httpFailures: 1
+            interval: 5

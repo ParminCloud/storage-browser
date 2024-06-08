@@ -17,12 +17,16 @@
 * Object actions (Upload, Download, Remove, etc.)
 * Dark/Light Mode :)
 
+## Deployment
+
+Check out [deployments](./deployments/README.md)
+
 ## TODO
 
 * [ ] Pagination
 * [ ] Save credentials in browser
 * [ ] Creating and Using more reusable components (specially Modals in page)
-* [ ] More Docs (Screenshot, Deployment)
+* [ ] More Docs (Screenshot, Deployment) [WIP]
 
 ## Contributing
 

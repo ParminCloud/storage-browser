@@ -1,0 +1,81 @@
+applicationName: storage-browser
+
+deployment:
+  replicas: 2
+
+  readinessProbe:
+    enabled: true
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 10
+    httpGet:
+      path: /
+      port: 3000
+
+  livenessProbe:
+    enabled: true
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 10
+    tcpSocket:
+      port: 3000
+
+## Set `pullPolicy` to Always when we are using branch instead of fixed tag
+{{- $version := requiredEnv "VERSION" }}
+{{- $regex := `^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*)(\.(0|[1-9][0-9]*|[0-9]*[0-9]*))*))?(\+([0-9]+(\.[0-9]+)*))?$`}}
+
+  image:
+    repository: ghcr.io/parmincloud/storage-browser
+    tag: {{ $version | quote }}
+    {{- if regexMatch $regex $version }}
+    pullPolicy: IfNotPresent
+    {{- else }}
+    pullPolicy: Always
+    {{- end }}
+
+service:
+  ports:
+    - port: 3000
+      name: http
+      protocol: TCP
+      targetPort: 3000
+  type: ClusterIP
+
+{{- $certManagerClusterIssuer := env "CERT_MANAGER_CLUSTER_ISSUER" }}
+{{- $ingressClass := env "INGRESS_CLASS" }}
+
+ingress:
+  enabled: true
+  ingressClassName: {{ $ingressClass | quote }}
+  servicePort: http
+  pathType: ImplementationSpecific
+  hosts:
+    - host: {{ requiredEnv "DOMAIN" }}
+      paths:
+        - path: /
+
+  annotations:
+{{- if $certManagerClusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ $certManagerClusterIssuer }}
+{{- end }}
+{{- if eq $ingressClass "nginx" }}
+    nginx.ingress.kubernetes.io/enable-cors: "false"
+{{- end }}
+{{- if eq $ingressClass "kong" }}
+    konghq.com/plugins: bot-detection
+    konghq.com/upstream-policy: storage-browser
+{{- if $certManagerClusterIssuer }}
+    konghq.com/protocols: "https"
+{{- end }}
+{{- end }}
+
+{{- if $certManagerClusterIssuer }}
+  tls:
+    - secretName: {{ requiredEnv "DOMAIN" }}-tls
+      hosts:
+        - {{ requiredEnv "DOMAIN" }}
+{{- end }}

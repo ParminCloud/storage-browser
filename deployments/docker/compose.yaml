@@ -1,0 +1,23 @@
+name: storage-browser
+services:
+  storage-browser:
+    image: ghcr.io/parmincloud/storage-browser:main
+    container_name: storage-browser
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "bash", "-c", "nc -vz 127.0.0.1 3000"]
+      interval: 5s
+      timeout: 1s
+      retries: 2
+      start_period: 1s
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: ingress
+        name: http
+        host_ip: 0.0.0.0
+
+networks:
+  default:
+    name: storage-browser
