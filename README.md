@@ -1,5 +1,7 @@
 # ParminCloud S3 Object Storage Browser
 
+<video src='./demo/demo.mp4'/>
+
 ## Powered by
 
 * [pnpm](https://pnpm.io/)
