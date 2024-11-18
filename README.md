@@ -27,7 +27,7 @@ Check out [deployments](./deployments/README.md)
 
 * [ ] Pagination
 * [ ] Save credentials in browser
-* [ ] Creating and Using more reusable components (specially Modals in page)
+* [ ] Creating and Using more reusable components (specially Dialogs in page)
 * [x] More Docs (Screenshot, Deployment)
 
 ## Contributing

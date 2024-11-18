@@ -1,29 +1,32 @@
+import { Field } from "@/components/ui/field"
 import {
-  AlertDialog,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Toaster, toaster } from "@/components/ui/toaster"
+import {
   Button,
   Input,
-  FormLabel,
-  FormControl,
   Code,
-  useToast
 } from "@chakra-ui/react";
 import { setValueFromEvent } from "./utils";
 import { useState } from "react";
 
 const DeleteObject = ({
-  isOpen,
+  open,
   onOpen,
   onClose,
   cancelRef,
   objectKey,
   action
 }: {
-  isOpen: boolean;
+  open: boolean;
   onOpen: () => void;
   onClose: () => void;
   cancelRef: React.MutableRefObject<any>;
@@ -31,49 +34,48 @@ const DeleteObject = ({
   objectKey: string;
 }) => {
   const [key, setKey] = useState("");
-  const toast = useToast();
 
   return (
-    <AlertDialog
-      isOpen={isOpen}
-      leastDestructiveRef={cancelRef}
-      onClose={onClose}
-    >
-      <AlertDialogOverlay>
-        <AlertDialogContent>
-          <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Delete Object
-          </AlertDialogHeader>
+    <>
+      <Toaster />
 
-          <AlertDialogBody>
+      <DialogRoot
+        open={open}
+        onExitComplete={onClose}
+        role="alertdialog"
+      >
+        <DialogContent>
+          <DialogHeader fontSize="lg" fontWeight="bold">
+            Delete Object
+          </DialogHeader>
+
+          <DialogBody>
             Are you sure? You will not be able to undo this action afterwards.
             Enter Object Key <Code>{objectKey}</Code> to confirm object removal
-            <FormControl mt={4}>
-              <FormLabel>Object Key</FormLabel>
+            <Field label="Object Key" mt={4}>
               <Input
                 onChange={(ev) => setValueFromEvent(ev, setKey)}
                 placeholder="Object Key"
               />
-            </FormControl>
-          </AlertDialogBody>
+            </Field>
+          </DialogBody>
 
-          <AlertDialogFooter>
+          <DialogFooter>
             <Button ref={cancelRef} onClick={onClose}>
               Cancel
             </Button>
             <Button
-              colorScheme="red"
+              colorPalette="red"
               onClick={() => {
                 if (key === objectKey) {
                   action();
                   onClose();
                 } else {
-                  toast({
+                  toaster.create({
                     title: "Wrong Input",
                     description: "Input must be the same as object key",
-                    status: "error",
+                    type: "error",
                     duration: 5000,
-                    isClosable: true
                   });
                 }
               }}
@@ -81,10 +83,10 @@ const DeleteObject = ({
             >
               Delete
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialogOverlay>
-    </AlertDialog>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
+    </>
   );
 };
 
