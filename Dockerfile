@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:20.14.0-bookworm AS base
+FROM node:22-bookworm AS base
 
 # Install dependencies only when needed
 FROM base AS deps
