@@ -24,7 +24,8 @@ import {
   Link,
   Center,
   FormatByte,
-  Box
+  Box,
+  Spinner
 } from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import Header from "./header";
@@ -112,14 +113,14 @@ export default function Page() {
         let isTruncated = true;
         let list = [];
         setObjectList([]);
-        while (isTruncated) {
-          const { Contents, IsTruncated, NextContinuationToken } =
-            await user.current.send(command);
-          list.push(...(Contents || []));
-          setObjectList(list);
-          isTruncated = IsTruncated === true;
-          command.input.ContinuationToken = NextContinuationToken;
-        }
+        // while (isTruncated) {
+        const { Contents, IsTruncated, NextContinuationToken } =
+          await user.current.send(command);
+        list.push(...(Contents || []));
+        setObjectList(list);
+        isTruncated = IsTruncated === true;
+        command.input.ContinuationToken = NextContinuationToken;
+        // }
       } catch (err: any) {
         toaster.create({
           title: "Error while getting object list",
@@ -443,7 +444,7 @@ export default function Page() {
                       <ClipboardRoot
                         value={getObjectLink(value)}
                         timeout={1000}>
-                        <ClipboardIconButton />
+                        <ClipboardIconButton size="md" variant="solid" />
                       </ClipboardRoot>
                     </Stack>
                   </Table.Cell>
@@ -487,6 +488,11 @@ export default function Page() {
           </Text>
         </Center>
       </footer>
+      <Box pos="absolute" hidden={!isLoading} inset="0" bg="bg/80">
+        <Center h="full">
+          <Spinner />
+        </Center>
+      </Box>
     </Box>
   );
 }
