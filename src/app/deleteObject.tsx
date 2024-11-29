@@ -46,7 +46,7 @@ const DeleteObject = ({
       >
         <DialogContent>
           <DialogHeader fontSize="lg" fontWeight="bold">
-            Delete Object
+            <DialogTitle>Delete Object</DialogTitle>
           </DialogHeader>
 
           <DialogBody>
@@ -84,6 +84,7 @@ const DeleteObject = ({
               Delete
             </Button>
           </DialogFooter>
+          <DialogCloseTrigger />
         </DialogContent>
       </DialogRoot>
     </>

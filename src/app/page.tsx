@@ -21,17 +21,21 @@ import {
   Text,
   GridItem,
   Icon,
-  Link
+  Link,
+  Center,
+  FormatByte,
+  Box
 } from "@chakra-ui/react";
+import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import Header from "./header";
-import React, { useRef, useState } from "react";
+import { useRef, useState, useEffect, MutableRefObject } from "react";
 import {
   S3Client,
   ListObjectsV2Command,
   GetObjectCommand,
   _Object,
   DeleteObjectCommand,
-  PutObjectCommand
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { MdCreateNewFolder, MdOutlineFileUpload } from "react-icons/md";
 import moment from "moment";
@@ -40,10 +44,12 @@ import { MdDelete } from "react-icons/md";
 import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/S3ServiceException";
 import DeleteObject from "./deleteObject";
 import { readablizeBytes, setValueFromEvent } from "./utils";
-import { IoMdHeart, IoMdCloudDownload, IoIosLink, IoMdRefresh } from "react-icons/io";
+import { IoMdHeart, IoMdCloudDownload, IoMdRefresh } from "react-icons/io";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { Endpoint } from "@smithy/types";
+
 export default function Page() {
-  const user = useRef<null | S3Client>(null);
+  const userUpstreamRef = useRef<null | S3Client>(null);
   const [selectedObject, setSelectedObject] = useState("");
   const bucket = useRef("");
   const [isLoading, setIsLoading] = useState(false);
@@ -51,11 +57,35 @@ export default function Page() {
   const [objectList, setObjectList] = useState<_Object[]>([]);
   const [newFolderName, setNewFolderName] = useState<string | null>(null);
   const [fileFolderName, setFileFolderName] = useState<string | null>(null);
-  const deleteCancelRef = React.useRef();
-  const initialCreateFolderRef = React.useRef(null);
-  const finalCreateFolderRef = React.useRef(null);
-  const initialUploadFileRef = React.useRef(null);
-  const finalUploadFileRef = React.useRef(null);
+  const deleteCancelRef = useRef();
+  const initialCreateFolderRef = useRef(null);
+  const finalCreateFolderRef = useRef(null);
+  const initialUploadFileRef = useRef(null);
+  const finalUploadFileRef = useRef(null);
+  const [endpoint, setEndpoint] = useState<null | Endpoint>(null);
+  const userRefHandler = {
+    set: (target: MutableRefObject<S3Client | null>, prop: keyof MutableRefObject<S3Client | null>, newValue: any, receiver: any) => {
+      target[prop] = newValue;
+      if (user.current?.config?.endpoint) {
+        user.current.config
+          .endpoint()
+          .then((v: Endpoint) => {
+            setEndpoint(v);
+          })
+      }
+      return true;
+    },
+  };
+  const user = new Proxy(userUpstreamRef, userRefHandler);
+  const getObjectLink = (object: _Object): string => {
+    return endpoint?.protocol +
+      "//" +
+      endpoint?.hostname +
+      "/" +
+      bucket?.current +
+      "/" +
+      object.Key
+  }
   const {
     open: isDeleteOpen,
     onOpen: onDeleteOpen,
@@ -76,20 +106,20 @@ export default function Page() {
       setIsLoading(true);
       const command = new ListObjectsV2Command({
         Bucket: bucket.current,
-        // TODO: use StartAfter to handle pagination
-        MaxKeys: 100
+        MaxKeys: 150
       });
       try {
         let isTruncated = true;
         let list = [];
+        setObjectList([]);
         while (isTruncated) {
           const { Contents, IsTruncated, NextContinuationToken } =
             await user.current.send(command);
           list.push(...(Contents || []));
+          setObjectList(list);
           isTruncated = IsTruncated === true;
           command.input.ContinuationToken = NextContinuationToken;
         }
-        setObjectList(list);
       } catch (err: any) {
         toaster.create({
           title: "Error while getting object list",
@@ -103,7 +133,7 @@ export default function Page() {
     }
   };
   return (
-    <>
+    <Box>
       <Toaster />
       <Header
         user={user.current}
@@ -346,7 +376,7 @@ export default function Page() {
                   <Table.Cell>{value.Key}</Table.Cell>
                   <Table.Cell>{moment(value.LastModified).fromNow()}</Table.Cell>
                   <Table.Cell>{value.LastModified?.toString()}</Table.Cell>
-                  <Table.Cell>{readablizeBytes(value.Size || 0)}</Table.Cell>
+                  <Table.Cell><FormatByte value={value.Size || 0} /></Table.Cell>
                   <Table.Cell>
                     <Stack
                       direction={{ base: "column", md: "row" }}
@@ -410,30 +440,11 @@ export default function Page() {
                           }
                         }}
                       ><MdDelete /></IconButton>
-                      <IconButton
-                        onClick={async () => {
-                          if (user.current?.config?.endpoint) {
-                            const endpoint =
-                              await user.current?.config?.endpoint();
-                            navigator.clipboard.writeText(
-                              endpoint.protocol +
-                              "//" +
-                              endpoint.hostname +
-                              "/" +
-                              bucket +
-                              "/" +
-                              value.Key
-                            );
-                            toaster.create({
-                              title: "Success",
-                              description: "Link copied to the clipboard",
-                              type: "success",
-                              duration: 5000,
-                            });
-                          }
-                        }}
-                        aria-label="Copy Object Link"
-                      ><IoIosLink /></IconButton>
+                      <ClipboardRoot
+                        value={getObjectLink(value)}
+                        timeout={1000}>
+                        <ClipboardIconButton />
+                      </ClipboardRoot>
                     </Stack>
                   </Table.Cell>
                 </Table.Row>
@@ -458,22 +469,24 @@ export default function Page() {
       )}
       <footer
         style={{
-          position: "fixed",
           bottom: 0,
           width: "100%"
         }}
       >
-        <Text
-          bgColor="var(--chakra-colors-chakra-body-bg)"
-          fontSize="md"
-          color="var(--chakra-colors-chakra-body-text)"
-        >
-          Made with <Icon color={"red"} as={IoMdHeart} /> by{" "}
-          <Link href="https://parmin.cloud">
-            ParminCloud <FaExternalLinkAlt max="2px" />
-          </Link>
-        </Text>
+        <Center>
+          <Text
+            bgColor="var(--chakra-colors-chakra-body-bg)"
+            fontSize="md"
+            alignContent={'center'}
+            color="var(--chakra-colors-chakra-body-text)"
+          >
+            Made with <Icon color={"red"}><IoMdHeart /></Icon> by {" "}
+            <Link href="https://parmin.cloud">
+              ParminCloud <Icon><FaExternalLinkAlt max="2px" /></Icon>
+            </Link>
+          </Text>
+        </Center>
       </footer>
-    </>
+    </Box>
   );
 }

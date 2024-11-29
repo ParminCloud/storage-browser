@@ -37,7 +37,6 @@ const Header = ({
   };
   return (
     <Flex
-      as="nav"
       align="center"
       justify="space-between"
       wrap="wrap"
@@ -45,7 +44,7 @@ const Header = ({
     >
       <Flex align="center" mr={5}>
         <Heading as="h1" size="lg" letterSpacing={"tighter"}>
-          <Icon as={MdStorage} /> Storage Browser
+          <div><Icon><MdStorage /></Icon> Storage Browser</div>
         </Heading>
       </Flex>
 
@@ -66,7 +65,7 @@ const Header = ({
           {user ? "Logged in" : "Login"}
         </Button>
         <IconButton
-          onClick={() => setTheme(theme === "light" ? "light" : "dark")}
+          onClick={() => setTheme(theme === "dark" && "light" || "dark")}
           variant={"ghost"}
           aria-label="Color Mode"
         >{theme === "light" ? <IoMoon /> : <IoSunnyOutline />}</IconButton>
