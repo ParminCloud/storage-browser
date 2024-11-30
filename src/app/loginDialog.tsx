@@ -42,6 +42,7 @@ const LoginDialog = ({
   };
   const savedInformation = (!isServer) && JSON.parse(localStorage.getItem("loginInformation") || "null");
   const [saveToLocal, setSaveToLocal] = React.useState(false);
+  React.useEffect(() => setSaveToLocal(savedInformation !== null), [])
   const [accessKey, setAccessKey] = React.useState(savedInformation?.accessKey || "");
   const [secretKey, setSecretKey] = React.useState(savedInformation?.secretKey || "");
   const [endpoint, setEndpoint] = React.useState<RadioGroupValueChangeDetails | null>(savedInformation?.endpoint || null);
@@ -97,7 +98,11 @@ const LoginDialog = ({
               </Stack>
             </RadioGroup>
           </Fieldset.Root>
-          <Checkbox gap="4" paddingTop="5%" alignItems="flex-start" checked={!!(savedInformation)} onCheckedChange={(e) => setSaveToLocal(!!e.checked)}>
+          <Checkbox
+            gap="4" paddingTop="5%" alignItems="flex-start"
+            checked={saveToLocal}
+            onCheckedChange={(e) => setSaveToLocal(!!e.checked)}
+          >
             <Box lineHeight="1">Save credendials in browser</Box>
             <Box fontWeight="normal" color="fg.muted" mt="1">
               Will save information on browser local storage
