@@ -4,17 +4,17 @@ import {
   Stack,
   Heading,
   Flex,
-  Button,
   useDisclosure,
-  useColorMode,
   IconButton,
   Icon
 } from "@chakra-ui/react";
-import { HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
-import LoginModal from "./loginModal";
+import { IoMoon, IoSunnyOutline } from "react-icons/io5";
+import { RxHamburgerMenu } from "react-icons/rx";
+import LoginDialog from "./loginDialog";
 import { S3Client } from "@aws-sdk/client-s3";
 import { MdStorage } from "react-icons/md";
-
+import { useTheme } from 'next-themes'
+import { Button } from "@/components/ui/button"
 const Header = ({
   onLogin,
   user
@@ -22,22 +22,21 @@ const Header = ({
   onLogin: ({ client, bucket }: { client: S3Client; bucket: string }) => void;
   user: S3Client | null;
 }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open, onOpen, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const {
-    isOpen: isModalOpen,
-    onOpen: onModalOpen,
-    onClose: onModalClose
+    open: isDialogOpen,
+    onOpen: onDialogOpen,
+    onClose: onDialogClose
   } = useDisclosure();
-  const handleToggle = () => (isOpen ? onClose() : onOpen());
-  const { colorMode, toggleColorMode } = useColorMode();
+  const handleToggle = () => (open ? onClose() : onOpen());
+  const { theme, setTheme } = useTheme();
   const onLoginFormOpen = () => {
     setLoading(true);
-    onModalOpen();
+    onDialogOpen();
   };
   return (
     <Flex
-      as="nav"
       align="center"
       justify="space-between"
       wrap="wrap"
@@ -45,38 +44,37 @@ const Header = ({
     >
       <Flex align="center" mr={5}>
         <Heading as="h1" size="lg" letterSpacing={"tighter"}>
-          <Icon as={MdStorage} /> Storage Browser
+          <div><Icon><MdStorage /></Icon> Storage Browser</div>
         </Heading>
       </Flex>
 
       <Box display={{ base: "block", md: "none" }} onClick={handleToggle}>
-        <HamburgerIcon />
+        <RxHamburgerMenu />
       </Box>
       <Stack
         direction={{ base: "column", md: "row" }}
-        display={{ base: isOpen ? "block" : "none", md: "flex" }}
+        display={{ base: open ? "block" : "none", md: "flex" }}
         width={{ base: "full", md: "auto" }}
         mt={{ base: 4, md: 0 }}
       >
         <Button
           disabled={user !== null}
-          isLoading={loading}
+          loading={loading}
           onClick={onLoginFormOpen}
         >
           {user ? "Logged in" : "Login"}
         </Button>
         <IconButton
-          onClick={toggleColorMode}
+          onClick={() => setTheme(theme === "dark" && "light" || "dark")}
           variant={"ghost"}
           aria-label="Color Mode"
-          icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-        />
-        <LoginModal
+        >{theme === "light" ? <IoMoon /> : <IoSunnyOutline />}</IconButton>
+        <LoginDialog
           onLogin={onLogin}
-          isOpen={isModalOpen}
+          open={isDialogOpen}
           onOpen={onLoginFormOpen}
           onClose={() => {
-            onModalClose();
+            onDialogClose();
             setTimeout(() => setLoading(false), 1500);
           }}
         />

@@ -1,18 +1,16 @@
-import { Providers } from "./providers";
+import Provider from "./provider"
 
 export default function RootLayout({
-  children
+  children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <head>
-        <title>ParminCloud Storage Browser</title>
-      </head>
+    <html suppressHydrationWarning>
+      <head />
       <body>
-        <Providers>{children}</Providers>
+        <Provider>{children}</Provider>
       </body>
     </html>
-  );
+  )
 }
