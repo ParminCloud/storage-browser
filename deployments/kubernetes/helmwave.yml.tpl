@@ -38,6 +38,7 @@ releases:
     reuse_values: false
     wait: true
     wait_for_jobs: true
+    timeout: 10m
     chart:
       name: stakater/application
     values:
