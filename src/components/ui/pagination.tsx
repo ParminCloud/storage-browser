@@ -174,6 +174,7 @@ export const PaginationItems = (props: React.HTMLAttributes<HTMLElement>) => {
             <PaginationItem
               key={index}
               type="page"
+              hidden={page.value === Infinity}
               value={page.value}
               {...props}
             />

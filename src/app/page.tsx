@@ -9,6 +9,12 @@ import {
   DialogHeader,
   DialogRoot,
 } from "@/components/ui/dialog"
+import {
+  PaginationItems,
+  PaginationNextTrigger,
+  PaginationPrevTrigger,
+  PaginationRoot,
+} from "@/components/ui/pagination"
 import { Alert } from "@/components/ui/alert"
 import {
   Table,
@@ -64,6 +70,10 @@ export default function Page() {
   const initialUploadFileRef = useRef(null);
   const finalUploadFileRef = useRef(null);
   const [endpoint, setEndpoint] = useState<null | Endpoint>(null);
+  const [page, setPage] = useState(1);
+  const [currentToken, setCurrentToken] = useState<undefined | string>();
+  const [nextToken, setNextToken] = useState<undefined | string>();
+  const [prevTokens, setPrevTokens] = useState<Array<undefined | string>>([]);
   const userRefHandler = {
     set: (target: MutableRefObject<S3Client | null>, prop: keyof MutableRefObject<S3Client | null>, newValue: any, _: any) => {
       target[prop] = newValue;
@@ -102,25 +112,21 @@ export default function Page() {
     onOpen: onUploadFileOpen,
     onClose: onUploadFileClose
   } = useDisclosure();
-  const loadFileList = async () => {
+  const loadFileList = async (token?: string) => {
+    console.log(token)
     if (user.current) {
       setIsLoading(true);
       const command = new ListObjectsV2Command({
         Bucket: bucket.current,
-        MaxKeys: 150
+        MaxKeys: 15,
+        ContinuationToken: token
       });
       try {
-        let isTruncated = true;
-        let list = [];
         setObjectList([]);
-        // while (isTruncated) {
-        const { Contents, IsTruncated, NextContinuationToken } =
+        const { Contents, NextContinuationToken } =
           await user.current.send(command);
-        list.push(...(Contents || []));
-        setObjectList(list);
-        isTruncated = IsTruncated === true;
-        command.input.ContinuationToken = NextContinuationToken;
-        // }
+        setObjectList(Contents || []);
+        setNextToken(NextContinuationToken)
       } catch (err: any) {
         toaster.create({
           title: "Error while getting object list",
@@ -325,7 +331,7 @@ export default function Page() {
         </GridItem>
         <GridItem w="100%">
           <IconButton
-            onClick={loadFileList}
+            onClick={() => loadFileList()}
             aria-label="Refresh"
           >
             <IoMdRefresh />
@@ -462,6 +468,31 @@ export default function Page() {
               </Table.Row>
             </Table.Footer>
           </Table.Root>
+          <Center paddingTop="1%">
+            <PaginationRoot page={page} count={Infinity} onPageChange={
+              (e) => {
+                let token: string | undefined = undefined;
+                if (e.page > page) {
+                  if (nextToken) {
+                    setPrevTokens((prev) => [...prev, currentToken]);
+                    setCurrentToken(nextToken);
+                    token = nextToken
+                  } else {
+                    if (prevTokens.length > 0) {
+                      const previousToken = prevTokens.pop();
+                      setCurrentToken(previousToken);
+                      setPrevTokens([...prevTokens]);
+                      token = previousToken;
+                    }
+                  }
+                }
+                loadFileList(token).then(() => setPage(e.page))
+              }} pageSize={15}>
+              <PaginationPrevTrigger />
+              <PaginationItems />
+              <PaginationNextTrigger />
+            </PaginationRoot>
+          </Center>
         </Table.ScrollArea>
       ) : (
         <Alert status="warning" title="No Data">
