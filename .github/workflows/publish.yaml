@@ -50,6 +50,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: .
+          platforms: linux/amd64
           labels: ${{ steps.meta.outputs.labels }}
           push: true
           tags: |
