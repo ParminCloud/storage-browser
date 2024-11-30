@@ -26,7 +26,7 @@ Check out [deployments](./deployments/README.md)
 ## TODO
 
 * [x] Pagination
-* [ ] Save credentials in browser
+* [x] Save credentials in browser (currently localStorage)
 * [ ] Creating and Using more reusable components (specially Dialogs in page)
 * [x] More Docs (Screenshot, Deployment)
 
