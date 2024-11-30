@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogRoot,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Toaster, toaster } from "@/components/ui/toaster"
 import {
@@ -20,7 +19,6 @@ import { useState } from "react";
 
 const DeleteObject = ({
   open,
-  onOpen,
   onClose,
   cancelRef,
   objectKey,

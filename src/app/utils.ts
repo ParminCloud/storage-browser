@@ -1,4 +1,4 @@
-import { ChangeEvent, InputHTMLAttributes } from "react";
+import { ChangeEvent } from "react";
 
 export function setValueFromEvent(
   ev: ChangeEvent<HTMLInputElement>,

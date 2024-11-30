@@ -29,7 +29,7 @@ import {
 } from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import Header from "./header";
-import { useRef, useState, useEffect, MutableRefObject } from "react";
+import { useRef, useState, MutableRefObject } from "react";
 import {
   S3Client,
   ListObjectsV2Command,
@@ -44,7 +44,7 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/S3ServiceException";
 import DeleteObject from "./deleteObject";
-import { readablizeBytes, setValueFromEvent } from "./utils";
+import { setValueFromEvent } from "./utils";
 import { IoMdHeart, IoMdCloudDownload, IoMdRefresh } from "react-icons/io";
 import { toaster, Toaster } from "@/components/ui/toaster";
 import { Endpoint } from "@smithy/types";
@@ -65,7 +65,7 @@ export default function Page() {
   const finalUploadFileRef = useRef(null);
   const [endpoint, setEndpoint] = useState<null | Endpoint>(null);
   const userRefHandler = {
-    set: (target: MutableRefObject<S3Client | null>, prop: keyof MutableRefObject<S3Client | null>, newValue: any, receiver: any) => {
+    set: (target: MutableRefObject<S3Client | null>, prop: keyof MutableRefObject<S3Client | null>, newValue: any, _: any) => {
       target[prop] = newValue;
       if (user.current?.config?.endpoint) {
         user.current.config
