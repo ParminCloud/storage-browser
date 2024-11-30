@@ -52,7 +52,7 @@ import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/
 import DeleteObject from "./deleteObject";
 import { setValueFromEvent } from "./utils";
 import { IoMdHeart, IoMdCloudDownload, IoMdRefresh } from "react-icons/io";
-import { toaster, Toaster } from "@/components/ui/toaster";
+import { toaster } from "@/components/ui/toaster";
 import { Endpoint } from "@smithy/types";
 
 export default function Page() {
@@ -141,7 +141,6 @@ export default function Page() {
   };
   return (
     <Box>
-      <Toaster />
       <Header
         user={user.current}
         onLogin={({

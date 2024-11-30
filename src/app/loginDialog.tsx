@@ -8,7 +8,7 @@ import {
   DialogRoot,
 } from "@/components/ui/dialog"
 
-import { Toaster, toaster } from "@/components/ui/toaster"
+import { toaster } from "@/components/ui/toaster"
 import { Field } from "@/components/ui/field"
 import { Radio, RadioGroup } from "@/components/ui/radio"
 import {
@@ -40,88 +40,84 @@ const LoginDialog = ({
   const [endpoint, setEndpoint] = React.useState<RadioGroupValueChangeDetails | null>(null);
   const [bucket, setBucket] = React.useState("");
   return (
-    <>
-      <Toaster />
+    <DialogRoot
+      initialFocusEl={() => initialRef.current}
+      finalFocusEl={() => finalRef.current}
+      open={open}
+      onExitComplete={onClose}
+    >
+      <DialogContent>
+        <DialogHeader>Login to ParminCloud Storage</DialogHeader>
+        <DialogCloseTrigger />
+        <DialogBody pb={6}>
+          <Field label="Access Key">
+            <Input
+              onChange={(ev) => setValueFromEvent(ev, setAccessKey)}
+              ref={initialRef}
+              placeholder="Access Key"
+            />
+          </Field>
 
-      <DialogRoot
-        initialFocusEl={() => initialRef.current}
-        finalFocusEl={() => finalRef.current}
-        open={open}
-        onExitComplete={onClose}
-      >
-        <DialogContent>
-          <DialogHeader>Login to ParminCloud Storage</DialogHeader>
-          <DialogCloseTrigger />
-          <DialogBody pb={6}>
-            <Field label="Access Key">
-              <Input
-                onChange={(ev) => setValueFromEvent(ev, setAccessKey)}
-                ref={initialRef}
-                placeholder="Access Key"
-              />
-            </Field>
+          <Field label="Secret Key" mt={4}>
+            <Input
+              onChange={(ev) => setValueFromEvent(ev, setSecretKey)}
+              type="password"
+              placeholder="Secret Key"
+            />
+          </Field>
+          <Field label="Bucket" mt={4}>
+            <Input
+              onChange={(ev) => setValueFromEvent(ev, setBucket)}
+              placeholder="Bucket"
+            />
+          </Field>
 
-            <Field label="Secret Key" mt={4}>
-              <Input
-                onChange={(ev) => setValueFromEvent(ev, setSecretKey)}
-                type="password"
-                placeholder="Secret Key"
-              />
-            </Field>
-            <Field label="Bucket" mt={4}>
-              <Input
-                onChange={(ev) => setValueFromEvent(ev, setBucket)}
-                placeholder="Bucket"
-              />
-            </Field>
+          <RadioGroup onValueChange={setEndpoint} mt={4}>
+            <Stack direction="column">
+              {Object.keys(endpoints).map((key, _) => {
+                return (
+                  <Radio key={key} value={key}>
+                    {endpoints[key]}
+                  </Radio>
+                );
+              })}
+            </Stack>
+          </RadioGroup>
+        </DialogBody>
 
-            <RadioGroup onValueChange={setEndpoint} mt={4}>
-              <Stack direction="column">
-                {Object.keys(endpoints).map((key, _) => {
-                  return (
-                    <Radio key={key} value={key}>
-                      {endpoints[key]}
-                    </Radio>
-                  );
-                })}
-              </Stack>
-            </RadioGroup>
-          </DialogBody>
-
-          <DialogFooter>
-            <Button
-              onClick={async () => {
-                if (endpoint && accessKey && secretKey && bucket) {
-                  const client = new S3Client({
-                    endpoint: endpoint.value,
-                    forcePathStyle: true,
-                    credentials: {
-                      accessKeyId: accessKey,
-                      secretAccessKey: secretKey
-                    },
-                    region: "us-east-1"
-                  });
-                  onLogin({ client: client, bucket: bucket });
-                  onClose();
-                } else {
-                  toaster.create({
-                    title: "Input Error",
-                    description: "Ensure that required inputs are filled",
-                    type: "error",
-                    duration: 5000,
-                  });
-                }
-              }}
-              colorPalette="blue"
-              mr={3}
-            >
-              Login
-            </Button>
-            <Button onClick={onClose}>Cancel</Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
-    </>
+        <DialogFooter>
+          <Button
+            onClick={async () => {
+              if (endpoint && accessKey && secretKey && bucket) {
+                const client = new S3Client({
+                  endpoint: endpoint.value,
+                  forcePathStyle: true,
+                  credentials: {
+                    accessKeyId: accessKey,
+                    secretAccessKey: secretKey
+                  },
+                  region: "us-east-1"
+                });
+                onLogin({ client: client, bucket: bucket });
+                onClose();
+              } else {
+                toaster.create({
+                  title: "Input Error",
+                  description: "Ensure that required inputs are filled",
+                  type: "error",
+                  duration: 5000,
+                });
+              }
+            }}
+            colorPalette="blue"
+            mr={3}
+          >
+            Login
+          </Button>
+          <Button onClick={onClose}>Cancel</Button>
+        </DialogFooter>
+      </DialogContent>
+    </DialogRoot>
   );
 };
 
