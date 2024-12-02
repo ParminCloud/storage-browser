@@ -38,7 +38,7 @@ const LoginDialog = ({
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
   const endpoints: Record<string, string> = {
-    "https://s3.amin.parminpaas.ir": "https://s3.amin.parminpaas.ir (Amin, SAS Storage)"
+    "https://sas.amin.parminstorage.ir": "https://sas.amin.parminstorage.ir (Amin, SAS Storage)"
   };
   const savedInformation = (!isServer) && JSON.parse(localStorage.getItem("loginInformation") || "null");
   const [saveToLocal, setSaveToLocal] = React.useState(false);
@@ -116,7 +116,6 @@ const LoginDialog = ({
               if (endpoint && accessKey && secretKey && bucket) {
                 const client = new S3Client({
                   endpoint: endpoint.value,
-                  forcePathStyle: true,
                   credentials: {
                     accessKeyId: accessKey,
                     secretAccessKey: secretKey
