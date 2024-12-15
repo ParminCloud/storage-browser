@@ -64,7 +64,7 @@ export default function Page() {
   const [objectList, setObjectList] = useState<_Object[]>([]);
   const [newFolderName, setNewFolderName] = useState<string | null>(null);
   const [fileFolderName, setFileFolderName] = useState<string | null>(null);
-  const deleteCancelRef = useRef();
+  const deleteCancelRef = useRef(null);
   const initialCreateFolderRef = useRef(null);
   const finalCreateFolderRef = useRef(null);
   const initialUploadFileRef = useRef(null);
