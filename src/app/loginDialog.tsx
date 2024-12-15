@@ -42,7 +42,7 @@ const LoginDialog = ({
   };
   const savedInformation = (!isServer) && JSON.parse(localStorage.getItem("loginInformation") || "null");
   const [saveToLocal, setSaveToLocal] = React.useState(false);
-  React.useEffect(() => setSaveToLocal(savedInformation !== null), [])
+  React.useEffect(() => setSaveToLocal(savedInformation !== null), [savedInformation])
   const [accessKey, setAccessKey] = React.useState(savedInformation?.accessKey || "");
   const [secretKey, setSecretKey] = React.useState(savedInformation?.secretKey || "");
   const [endpoint, setEndpoint] = React.useState<RadioGroupValueChangeDetails | null>(savedInformation?.endpoint || null);
