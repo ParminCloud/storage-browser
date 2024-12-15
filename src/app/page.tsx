@@ -140,7 +140,7 @@ export default function Page() {
     }
   };
   return (
-    <Box>
+    <Box paddingLeft={"2.5vw"} paddingRight={"2.5vw"}>
       <Header
         user={user.current}
         onLogin={({
@@ -488,7 +488,6 @@ export default function Page() {
                 loadFileList(token).then(() => setPage(e.page))
               }} pageSize={15}>
               <PaginationPrevTrigger />
-              <PaginationItems />
               <PaginationNextTrigger />
             </PaginationRoot>
           </Center>
