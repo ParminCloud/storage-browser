@@ -32,6 +32,11 @@ const Header = ({
   const handleToggle = () => (open ? onClose() : onOpen());
   const { theme, setTheme } = useTheme();
   const onLoginFormOpen = () => {
+    if (user !== null) {
+      localStorage.removeItem("loginInformation");
+      window.location.reload()
+      return
+    }
     setLoading(true);
     onDialogOpen();
   };
@@ -58,11 +63,11 @@ const Header = ({
         mt={{ base: 4, md: 0 }}
       >
         <Button
-          disabled={user !== null}
+          colorPalette={user ? "red" : "gray"}
           loading={loading}
           onClick={onLoginFormOpen}
         >
-          {user ? "Logged in" : "Login"}
+          {user ? "Logout" : "Login"}
         </Button>
         <IconButton
           onClick={() => setTheme(theme === "dark" && "light" || "dark")}

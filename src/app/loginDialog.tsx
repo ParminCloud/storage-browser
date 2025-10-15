@@ -21,7 +21,7 @@ import {
   Fieldset,
   Box
 } from "@chakra-ui/react";
-import { setValueFromEvent } from "./utils";
+import { getClient, getSavedCredentials, setValueFromEvent } from "./utils";
 import { S3Client } from "@aws-sdk/client-s3";
 
 const LoginDialog = ({
@@ -34,13 +34,12 @@ const LoginDialog = ({
   onClose: () => void;
   onLogin: ({ client, bucket }: { client: S3Client; bucket: string }) => void;
 }) => {
-  const isServer = typeof window === 'undefined'
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
   const endpoints: Record<string, string> = {
     "https://sas.amin.parminstorage.ir": "https://sas.amin.parminstorage.ir (Amin, SAS Storage)"
   };
-  const savedInformation = (!isServer) && JSON.parse(localStorage.getItem("loginInformation") || "null");
+  const savedInformation = getSavedCredentials();
   const [saveToLocal, setSaveToLocal] = React.useState(false);
   React.useEffect(() => setSaveToLocal(savedInformation !== null), [savedInformation])
   const [accessKey, setAccessKey] = React.useState(savedInformation?.accessKey || "");
@@ -114,14 +113,6 @@ const LoginDialog = ({
           <Button
             onClick={async () => {
               if (endpoint && accessKey && secretKey && bucket) {
-                const client = new S3Client({
-                  endpoint: endpoint.value,
-                  credentials: {
-                    accessKeyId: accessKey,
-                    secretAccessKey: secretKey
-                  },
-                  region: "us-east-1"
-                });
                 if (saveToLocal) {
                   localStorage.setItem("loginInformation",
                     JSON.stringify(
@@ -136,7 +127,10 @@ const LoginDialog = ({
                 } else {
                   localStorage.removeItem("loginInformation")
                 }
-                onLogin({ client: client, bucket: bucket });
+                const client = getClient({ endpoint: endpoint.value, accessKey, secretKey });
+                if (client) {
+                  onLogin({ client: client, bucket: bucket });
+                }
                 onClose();
               } else {
                 toaster.create({

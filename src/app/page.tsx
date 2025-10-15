@@ -35,7 +35,7 @@ import {
 } from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import Header from "./header";
-import { useRef, useState, MutableRefObject } from "react";
+import { useRef, useState, RefObject, useEffect } from "react";
 import {
   S3Client,
   ListObjectsV2Command,
@@ -50,7 +50,7 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/S3ServiceException";
 import DeleteObject from "./deleteObject";
-import { setValueFromEvent } from "./utils";
+import { getClient, getSavedCredentials, setValueFromEvent } from "./utils";
 import { IoMdHeart, IoMdCloudDownload, IoMdRefresh } from "react-icons/io";
 import { toaster } from "@/components/ui/toaster";
 import { Endpoint } from "@smithy/types";
@@ -74,8 +74,9 @@ export default function Page() {
   const [currentToken, setCurrentToken] = useState<undefined | string>();
   const [nextToken, setNextToken] = useState<undefined | string>();
   const [prevTokens, setPrevTokens] = useState<Array<undefined | string>>([]);
+  const [savedInformation,] = useState(getSavedCredentials())
   const userRefHandler = {
-    set: (target: MutableRefObject<S3Client | null>, prop: keyof MutableRefObject<S3Client | null>, newValue: any, _: any) => {
+    set: (target: RefObject<S3Client | null>, prop: keyof RefObject<S3Client | null>, newValue: any, _: any) => {
       target[prop] = newValue;
       if (user.current?.config?.endpoint) {
         user.current.config
@@ -88,6 +89,32 @@ export default function Page() {
     },
   };
   const user = new Proxy(userUpstreamRef, userRefHandler);
+  const onLogin = ({
+    client,
+    bucket: inputBucket
+  }: {
+    client: S3Client;
+    bucket: string;
+  }) => {
+    bucket.current = inputBucket;
+    user.current = client;
+    loadFileList();
+  }
+  useEffect(() => {
+    console.table(savedInformation);
+    if (savedInformation) {
+      const client = getClient(
+        {
+          endpoint: savedInformation.endpoint.value,
+          accessKey: savedInformation.accessKey,
+          secretKey: savedInformation.secretKey
+        }
+      );
+      if (client) {
+        onLogin({ client: client, bucket: savedInformation.bucket });
+      }
+    }
+  }, [savedInformation]);
   const getObjectLink = (object: _Object): string => {
     return endpoint?.protocol +
       "//" +
@@ -113,7 +140,6 @@ export default function Page() {
     onClose: onUploadFileClose
   } = useDisclosure();
   const loadFileList = async (token?: string) => {
-    console.log(token)
     if (user.current) {
       setIsLoading(true);
       const command = new ListObjectsV2Command({
@@ -123,8 +149,7 @@ export default function Page() {
       });
       try {
         setObjectList([]);
-        const { Contents, NextContinuationToken } =
-          await user.current.send(command);
+        const { Contents, NextContinuationToken } = await user.current.send(command);
         setObjectList(Contents || []);
         setNextToken(NextContinuationToken)
       } catch (err: any) {
@@ -143,17 +168,7 @@ export default function Page() {
     <Box paddingLeft={"2.5vw"} paddingRight={"2.5vw"}>
       <Header
         user={user.current}
-        onLogin={({
-          client,
-          bucket: inputBucket
-        }: {
-          client: S3Client;
-          bucket: string;
-        }) => {
-          bucket.current = inputBucket;
-          user.current = client;
-          loadFileList();
-        }}
+        onLogin={onLogin}
       />
       <Grid
         templateColumns="100fr 1fr 1fr"
