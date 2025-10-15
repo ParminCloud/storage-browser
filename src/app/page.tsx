@@ -45,9 +45,10 @@ import {
   DeleteObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { MdCreateNewFolder, MdOutlineFileUpload } from "react-icons/md";
 import moment from "moment";
-import { FaArrowDown, FaArrowRight, FaExternalLinkAlt } from "react-icons/fa";
+import { FaArrowDown, FaArrowRight, FaExternalLinkAlt, FaFileSignature } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/S3ServiceException";
 import DeleteObject from "./deleteObject";
@@ -256,7 +257,7 @@ export default function Page() {
         <Table.Row key={node.key} backgroundColor={"custom-teal-bg-color"}>
           <Table.Cell>
             <Box onClick={() => toggleFolder(node.key)} cursor="pointer" pl={paddingLeft}>
-              <span style={{"display": "flex"}}>{isOpen ? <FaArrowDown/> : <FaArrowRight/>}&nbsp;&nbsp;{node.name}</span>
+              <span style={{ "display": "flex" }}>{isOpen ? <FaArrowDown /> : <FaArrowRight />}&nbsp;&nbsp;{node.name}</span>
             </Box>
           </Table.Cell>
           <Table.Cell></Table.Cell>
@@ -265,12 +266,12 @@ export default function Page() {
           <Table.Cell>
             <Stack direction={{ base: "column", md: "row" }} width={{ base: "full", md: "auto" }} mt={{ base: 4, md: 0 }}>
               <IconButton size="sm" onClick={() => { toggleFolder(node.key); }}>
-              {
-                isOpen ?
-                <LuFolderOpen/>
-                :
-                <LuFolderClosed/>
-              }
+                {
+                  isOpen ?
+                    <LuFolderOpen />
+                    :
+                    <LuFolderClosed />
+                }
               </IconButton>
             </Stack>
           </Table.Cell>
@@ -330,9 +331,28 @@ export default function Page() {
             ><IoMdCloudDownload /></IconButton>
 
             <IconButton aria-label="Remove Object" onClick={() => { if (node.key) { setSelectedObject(node.key); onDeleteOpen(); } }}><MdDelete /></IconButton>
-            <ClipboardRoot value={endpoint?.protocol + "//" + endpoint?.hostname + "/" + bucket?.current + "/" + node.key} timeout={1000}>
+            <ClipboardRoot value={endpoint?.protocol + "//" + bucket?.current + "." + endpoint?.hostname + "/" + node.key} timeout={1000}>
               <ClipboardIconButton size="md" variant="solid" />
             </ClipboardRoot>
+            <IconButton size="md" variant="solid" onClick={() => {
+              if (user.current) {
+                getSignedUrl(user.current, new GetObjectCommand({
+                  Bucket: bucket?.current,
+                  Key: node.key,
+                })).then((url) => {
+                  navigator.clipboard.writeText(url).then(()=>{
+                  toaster.create({
+                    title: "Presigned URL Copied",
+                    description: "The presigned URL has been copied to clipboard",
+                    type: "success",
+                    duration: 3000,
+                  });
+                });
+                })
+              }
+            }}>
+              <FaFileSignature />
+            </IconButton>
           </Stack>
         </Table.Cell>
       </Table.Row>

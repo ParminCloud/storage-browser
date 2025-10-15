@@ -30,7 +30,7 @@ export function getClient({ endpoint, accessKey, secretKey }: { endpoint: string
         accessKeyId: accessKey,
         secretAccessKey: secretKey
       },
-      region: "us-east-1"
+      region: "us-east-1",
     });
   }
 }

@@ -11,6 +11,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.910.0
         version: 3.910.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.910.0
+        version: 3.910.0
       '@chakra-ui/react':
         specifier: ^3.27.1
         version: 3.27.1(@emotion/react@11.14.0(@types/react@19.2.2)(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -177,6 +180,10 @@ packages:
     resolution: {integrity: sha512-gzQAkuHI3xyG6toYnH/pju+kc190XmvnB7X84vtN57GjgdQJICt9So/BD0U6h+eSfk9VBnafkVrAzBzWMEFZVw==}
     engines: {node: '>=18.0.0'}
 
+  '@aws-sdk/s3-request-presigner@3.910.0':
+    resolution: {integrity: sha512-ujvdODCiUNbhZ0eblHpD0HdlNpTi4NEO7mqJsU6XBNprZSCDJgHXF0qDb3Y99kN1L7/caxXefY6KpoHFI34VkA==}
+    engines: {node: '>=18.0.0'}
+
   '@aws-sdk/signature-v4-multi-region@3.910.0':
     resolution: {integrity: sha512-SM62pR9ozCNzbKuV315QSgR1Tkyy+0sKMzgGAufvOupuWBUaJgEuzCwfLEBhPiEODaQCdJ3UZGn0wYXxn8gXsA==}
     engines: {node: '>=18.0.0'}
@@ -195,6 +202,10 @@ packages:
 
   '@aws-sdk/util-endpoints@3.910.0':
     resolution: {integrity: sha512-6XgdNe42ibP8zCQgNGDWoOF53RfEKzpU/S7Z29FTTJ7hcZv0SytC0ZNQQZSx4rfBl036YWYwJRoJMlT4AA7q9A==}
+    engines: {node: '>=18.0.0'}
+
+  '@aws-sdk/util-format-url@3.910.0':
+    resolution: {integrity: sha512-cYfgDGxZnrAq7wvntBjW6/ZewRcwywOE1Q9KKPO05ZHXpWCrqKNkx0JG8h2xlu+2qX6lkLZS+NyFAlwCQa0qfA==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/util-locate-window@3.893.0':
@@ -2864,6 +2875,17 @@ snapshots:
       '@smithy/util-middleware': 4.2.2
       tslib: 2.8.1
 
+  '@aws-sdk/s3-request-presigner@3.910.0':
+    dependencies:
+      '@aws-sdk/signature-v4-multi-region': 3.910.0
+      '@aws-sdk/types': 3.910.0
+      '@aws-sdk/util-format-url': 3.910.0
+      '@smithy/middleware-endpoint': 4.3.3
+      '@smithy/protocol-http': 5.3.2
+      '@smithy/smithy-client': 4.8.1
+      '@smithy/types': 4.7.1
+      tslib: 2.8.1
+
   '@aws-sdk/signature-v4-multi-region@3.910.0':
     dependencies:
       '@aws-sdk/middleware-sdk-s3': 3.910.0
@@ -2900,6 +2922,13 @@ snapshots:
       '@smithy/types': 4.7.1
       '@smithy/url-parser': 4.2.2
       '@smithy/util-endpoints': 3.2.2
+      tslib: 2.8.1
+
+  '@aws-sdk/util-format-url@3.910.0':
+    dependencies:
+      '@aws-sdk/types': 3.910.0
+      '@smithy/querystring-builder': 4.2.2
+      '@smithy/types': 4.7.1
       tslib: 2.8.1
 
   '@aws-sdk/util-locate-window@3.893.0':
