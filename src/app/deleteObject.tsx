@@ -56,9 +56,6 @@ const DeleteObject = ({
         </DialogBody>
 
         <DialogFooter>
-          <Button ref={cancelRef} onClick={onClose}>
-            Cancel
-          </Button>
           <Button
             colorPalette="red"
             onClick={() => {
@@ -77,6 +74,9 @@ const DeleteObject = ({
             ml={3}
           >
             Delete
+          </Button>
+          <Button ref={cancelRef} variant={"outline"} onClick={onClose}>
+            Cancel
           </Button>
         </DialogFooter>
         <DialogCloseTrigger />

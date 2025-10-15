@@ -13,7 +13,7 @@ import LoginDialog from "./loginDialog";
 import { S3Client } from "@aws-sdk/client-s3";
 import { MdStorage } from "react-icons/md";
 import { useTheme } from 'next-themes';
-import { Button } from "@/components/ui/button";
+import { Button } from "@chakra-ui/react";
 import { ColorModeButton } from "@/components/ui/color-mode";
 const Header = ({
   onLogin,
@@ -47,8 +47,8 @@ const Header = ({
       wrap="wrap"
       padding={6}
     >
-      <Flex align="center" mr={5}>
-        <Heading as="h1" size="lg" letterSpacing={"tighter"}>
+      <Flex align="center">
+        <Heading as="h1">
           <div><Icon><MdStorage /></Icon> Storage Browser</div>
         </Heading>
       </Flex>

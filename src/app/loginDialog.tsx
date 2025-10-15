@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogRoot,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { toaster } from "@/components/ui/toaster"
@@ -23,6 +24,7 @@ import {
 } from "@chakra-ui/react";
 import { getClient, getSavedCredentials, setValueFromEvent } from "./utils";
 import { S3Client } from "@aws-sdk/client-s3";
+import { CloseButton } from "@/components/ui/close-button";
 
 const LoginDialog = ({
   open,
@@ -54,8 +56,10 @@ const LoginDialog = ({
       onExitComplete={onClose}
     >
       <DialogContent>
-        <DialogHeader>Login to ParminCloud Storage</DialogHeader>
-        <DialogCloseTrigger />
+        <DialogHeader><DialogTitle>Login to ParminCloud Storage</DialogTitle></DialogHeader>
+        <DialogCloseTrigger asChild>
+          <CloseButton size="sm" onClick={onClose} />
+        </DialogCloseTrigger>
         <DialogBody pb={6}>
           <Fieldset.Root>
             <Fieldset.Legend>Enter your Credencials</Fieldset.Legend>
@@ -141,12 +145,11 @@ const LoginDialog = ({
                 });
               }
             }}
-            colorPalette="blue"
-            mr={3}
+            variant="solid"
           >
             Login
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button variant={"outline"} onClick={onClose}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </DialogRoot>
