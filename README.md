@@ -7,7 +7,7 @@
 * [pnpm](https://pnpm.io/)
 * [React](https://react.dev/)
 * [Nuxt.JS](https://nextjs.org/)
-* [Chakra UI](https://v2.chakra-ui.com/)
+* [Chakra UI](https://chakra-ui.com/)
 * [TypeScript](https://www.typescriptlang.org/)
 * [react-icons](https://react-icons.github.io/react-icons/)
 * [JavaScript S3 Client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-s3)
@@ -15,7 +15,7 @@
 ## Feature
 
 * Directory/Sub-Directory support
-* Browse files (limited to first 100 items) [See TODO list]
+* Browse files
 * Object actions (Upload, Download, Remove, etc.)
 * Dark/Light Mode :)
 

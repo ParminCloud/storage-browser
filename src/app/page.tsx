@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Field } from "@/components/ui/field"
 import {
   DialogBody,
@@ -46,7 +47,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { MdCreateNewFolder, MdOutlineFileUpload } from "react-icons/md";
 import moment from "moment";
-import { FaExternalLinkAlt } from "react-icons/fa";
+import { FaArrowDown, FaArrowRight, FaExternalLinkAlt } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/S3ServiceException";
 import DeleteObject from "./deleteObject";
@@ -55,6 +56,7 @@ import { IoMdHeart, IoMdCloudDownload, IoMdRefresh } from "react-icons/io";
 import { toaster } from "@/components/ui/toaster";
 import { Endpoint } from "@smithy/types";
 import { CloseButton } from "@/components/ui/close-button";
+import { LuFolderClosed, LuFolderOpen } from "react-icons/lu";
 
 export default function Page() {
   const userUpstreamRef = useRef<null | S3Client>(null);
@@ -63,6 +65,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadFile, setUploadFile] = useState<null | File>(null);
   const [objectList, setObjectList] = useState<_Object[]>([]);
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [newFolderName, setNewFolderName] = useState<string | null>(null);
   const [fileFolderName, setFileFolderName] = useState<string | null>(null);
   const deleteCancelRef = useRef(null);
@@ -124,6 +127,217 @@ export default function Page() {
       "/" +
       object.Key
   }
+
+  type TreeNode = {
+    name: string;
+    key: string; // full key for files, prefix for folders
+    isFolder: boolean;
+    size?: number;
+    lastModified?: Date;
+    children?: TreeNode[];
+  };
+
+  const buildTree = (objects: _Object[]): TreeNode[] => {
+    const rootMap: Map<string, TreeNode> = new Map();
+
+    const ensureFolder = (pathParts: string[], accumKey: string) => {
+      let parentMap = rootMap;
+      let currentKey = "";
+      for (let i = 0; i < pathParts.length; i++) {
+        const part = pathParts[i];
+        currentKey = currentKey ? `${currentKey}/${part}` : part;
+        const folderKey = currentKey + "/";
+        if (!parentMap.has(folderKey)) {
+          parentMap.set(folderKey, {
+            name: part,
+            key: folderKey,
+            isFolder: true,
+            children: [],
+          });
+        }
+        const node = parentMap.get(folderKey)!;
+        if (!node.children) node.children = [];
+        // move into children map by creating a pseudo map stored on the node via symbol
+        // we'll instead collect children later by walking objects
+      }
+    };
+
+    // Simpler approach: create a nested object tree by splitting keys
+    const tree: Record<string, TreeNode> = {};
+
+    const insert = (obj: _Object) => {
+      if (!obj.Key) return;
+      const parts = obj.Key.split("/");
+      let currChildren = tree;
+      let prefix = "";
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        const isLast = i === parts.length - 1;
+        const nodeKey = prefix ? `${prefix}/${part}` : part;
+        const folderKey = isLast && obj.Key.endsWith("/") ? nodeKey + "/" : (isLast ? nodeKey : nodeKey + "/");
+        if (!currChildren[folderKey]) {
+          currChildren[folderKey] = {
+            name: part,
+            key: isLast && !obj.Key.endsWith("/") ? nodeKey : folderKey,
+            isFolder: !isLast || obj.Key.endsWith("/"),
+            children: [],
+            size: isLast && !obj.Key.endsWith("/") ? obj.Size : undefined,
+            lastModified: isLast && obj.LastModified ? new Date(obj.LastModified) : undefined,
+          };
+        }
+        const node = currChildren[folderKey];
+        // prepare for next level: use a map keyed by folderKey for children
+        if (!node.children) node.children = [];
+        // find or create next map container by using a temporary map on node via a symbol is complex; instead
+        // we'll represent tree as nested arrays by traversing existing children
+        // if not last, move into child container represented by an object mapping name->node for easier inserts
+        if (isLast) return;
+        // find child container map by building a temporary map of children keyed by their key
+        const nextMap: Record<string, TreeNode> = {};
+        node.children.forEach((c) => (nextMap[c.key] = c));
+        prefix = nodeKey;
+        // now set currChildren pointing to nextMap so next iteration can insert into it
+        currChildren = nextMap;
+      }
+    };
+
+    // Because the above approach using dynamic maps is getting convoluted, implement a straightforward recursive builder
+    const rootNodes: TreeNode[] = [];
+
+    const addToNodes = (nodes: TreeNode[], parts: string[], fullKey: string, obj: _Object) => {
+      if (parts.length === 0) return;
+      const [head, ...rest] = parts;
+      const isLast = rest.length === 0;
+      const folder = isLast && fullKey.endsWith("/") ? true : !isLast;
+      const nodeKey = isLast ? (fullKey.endsWith("/") ? fullKey : fullKey) : `${head}/`;
+      let node = nodes.find((n) => n.name === head && n.isFolder === folder);
+      if (!node) {
+        node = {
+          name: head,
+          key: isLast ? fullKey : (nodes === rootNodes ? `${head}/` : `${nodes[0]?.key || ""}${head}/`),
+          isFolder: !isLast || fullKey.endsWith("/"),
+          children: [],
+        };
+        nodes.push(node);
+      }
+      if (isLast) {
+        // set file properties when it's a file
+        if (!node.isFolder) {
+          node.size = obj.Size;
+          node.lastModified = obj.LastModified ? new Date(obj.LastModified) : undefined;
+          node.key = fullKey;
+        }
+        return;
+      }
+      addToNodes(node.children!, rest, fullKey, obj);
+    };
+
+    objects.forEach((obj) => {
+      if (!obj.Key) return;
+      const key = obj.Key;
+      const parts = key.split("/").filter((p) => p !== "");
+      if (parts.length === 0) return;
+      addToNodes(rootNodes, parts, key, obj);
+    });
+
+    return rootNodes;
+  };
+
+  const toggleFolder = (key: string) => {
+    setExpandedFolders((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const renderNode = (node: TreeNode, depth = 0, index?: number): React.ReactNode => {
+    const paddingLeft = `${depth * 20}px`;
+    if (node.isFolder) {
+      const isOpen = !!expandedFolders[node.key];
+      const rows: React.ReactNode[] = [];
+      rows.push(
+        <Table.Row key={node.key}>
+          <Table.Cell>
+            <Box onClick={() => toggleFolder(node.key)} cursor="pointer" pl={paddingLeft}>
+              <span style={{"display": "flex"}}>{isOpen ? <FaArrowDown/> : <FaArrowRight/>}&nbsp;&nbsp;{node.name}</span>
+            </Box>
+          </Table.Cell>
+          <Table.Cell></Table.Cell>
+          <Table.Cell></Table.Cell>
+          <Table.Cell></Table.Cell>
+          <Table.Cell>
+            <Stack direction={{ base: "column", md: "row" }} width={{ base: "full", md: "auto" }} mt={{ base: 4, md: 0 }}>
+              <IconButton size="sm" onClick={() => { toggleFolder(node.key); }}>
+              {
+                isOpen ?
+                <LuFolderOpen/>
+                :
+                <LuFolderClosed/>
+              }
+              </IconButton>
+            </Stack>
+          </Table.Cell>
+        </Table.Row>
+      );
+      if (isOpen && node.children) {
+        node.children.forEach((child) => {
+          const childRendered = renderNode(child, depth + 1);
+          if (Array.isArray(childRendered)) {
+            rows.push(...childRendered);
+          } else if (childRendered) {
+            rows.push(childRendered as React.ReactNode);
+          }
+        });
+      }
+      return rows;
+    }
+    // file
+    return (
+      <Table.Row key={node.key}>
+        <Table.Cell style={{ paddingLeft }}>{node.name}</Table.Cell>
+        <Table.Cell>{node.lastModified ? moment(node.lastModified).fromNow() : ""}</Table.Cell>
+        <Table.Cell>{node.lastModified?.toString() || ""}</Table.Cell>
+        <Table.Cell><FormatByte value={node.size || 0} /></Table.Cell>
+        <Table.Cell>
+          <Stack direction={{ base: "column", md: "row" }} width={{ base: "full", md: "auto" }} mt={{ base: 4, md: 0 }}>
+            <IconButton
+              onClick={() => {
+                const command = new GetObjectCommand({
+                  Bucket: bucket.current,
+                  Key: node.key
+                });
+                toaster.create({
+                  title: "Downloading object",
+                  description: "Ensure that you are allowed popups",
+                  type: "info",
+                  duration: 1500,
+                });
+                user.current
+                  ?.send(command)
+                  .then(async (response) => {
+                    const data = await response.Body?.transformToByteArray();
+                    if (data) {
+                      const blob = new Blob([data as BlobPart], { type: response.ContentType });
+                      const url = URL.createObjectURL(blob);
+                      window.open(url);
+                    } else {
+                      toaster.create({ title: "Error while downloading object", description: "Cannot download an empty object", type: "error", duration: 5000, });
+                    }
+                  })
+                  .catch((err) => {
+                    toaster.create({ title: "Error while downloading object", description: err, type: "error", duration: 5000, });
+                  })
+                  .finally(() => { loadFileList(); });
+              }}
+              aria-label="Download Object"
+            ><IoMdCloudDownload /></IconButton>
+
+            <IconButton aria-label="Remove Object" onClick={() => { if (node.key) { setSelectedObject(node.key); onDeleteOpen(); } }}><MdDelete /></IconButton>
+            <ClipboardRoot value={endpoint?.protocol + "//" + endpoint?.hostname + "/" + bucket?.current + "/" + node.key} timeout={1000}>
+              <ClipboardIconButton size="md" variant="solid" />
+            </ClipboardRoot>
+          </Stack>
+        </Table.Cell>
+      </Table.Row>
+    );
+  };
   const {
     open: isDeleteOpen,
     onOpen: onDeleteOpen,
@@ -394,85 +608,13 @@ export default function Page() {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {objectList.map((value: _Object, index: number) => (
-                <Table.Row key={index}>
-                  <Table.Cell>{value.Key}</Table.Cell>
-                  <Table.Cell>{moment(value.LastModified).fromNow()}</Table.Cell>
-                  <Table.Cell>{value.LastModified?.toString()}</Table.Cell>
-                  <Table.Cell><FormatByte value={value.Size || 0} /></Table.Cell>
-                  <Table.Cell>
-                    <Stack
-                      direction={{ base: "column", md: "row" }}
-                      width={{ base: "full", md: "auto" }}
-                      mt={{ base: 4, md: 0 }}
-                    >
-                      <IconButton
-                        onClick={() => {
-                          const command = new GetObjectCommand({
-                            Bucket: bucket.current,
-                            Key: value.Key
-                          });
-                          toaster.create({
-                            title: "Downloading object",
-                            description: "Ensure that you are allowed popups",
-                            type: "info",
-                            duration: 1500,
-                          });
-                          user.current
-                            ?.send(command)
-                            .then(async (response) => {
-                              const data =
-                                await response.Body?.transformToByteArray();
-                              if (data) {
-                                const blob = new Blob([data as BlobPart], {
-                                  type: response.ContentType
-                                });
-                                const url = URL.createObjectURL(blob);
-                                window.open(url);
-                              } else {
-                                toaster.create({
-                                  title: "Error while downloading object",
-                                  description:
-                                    "Cannot download an empty object",
-                                  type: "error",
-                                  duration: 5000,
-                                });
-                              }
-                            })
-                            .catch((err) => {
-                              toaster.create({
-                                title: "Error while downloading object",
-                                description: err,
-                                type: "error",
-                                duration: 5000,
-                              });
-                            })
-                            .finally(() => {
-                              loadFileList();
-                            });
-                        }}
-                        aria-label="Download Object"
-                      ><IoMdCloudDownload /></IconButton>
-
-                      <IconButton
-                        aria-label="Remove Object"
-                        onClick={() => {
-                          if (value.Key) {
-                            setSelectedObject(value.Key);
-                            onDeleteOpen();
-                          }
-                        }}
-                      ><MdDelete /></IconButton>
-                      <ClipboardRoot
-                        value={getObjectLink(value)}
-                        timeout={1000}>
-                        <ClipboardIconButton size="md" variant="solid" />
-                      </ClipboardRoot>
-                    </Stack>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-              <Table.Row></Table.Row>
+              {/* Build tree and render nodes */}
+              {(() => {
+                const tree = buildTree(objectList);
+                return tree.map((node) => (
+                  <React.Fragment key={node.key}>{renderNode(node)}</React.Fragment>
+                ));
+              })()}
             </Table.Body>
             <Table.Footer>
               <Table.Row>
