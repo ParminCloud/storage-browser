@@ -4,7 +4,7 @@ import * as React from "react"
 export interface TooltipProps extends ChakraTooltip.RootProps {
   showArrow?: boolean
   portalled?: boolean
-  portalRef?: React.RefObject<HTMLElement>
+  portalRef?: React.RefObject<HTMLElement | null>
   content: React.ReactNode
   contentProps?: ChakraTooltip.ContentProps
   disabled?: boolean
@@ -16,7 +16,7 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
       showArrow,
       children,
       disabled,
-      portalled,
+      portalled = true,
       content,
       contentProps,
       portalRef,

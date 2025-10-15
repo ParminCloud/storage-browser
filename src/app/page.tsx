@@ -31,7 +31,9 @@ import {
   Center,
   FormatByte,
   Box,
-  Spinner
+  Spinner,
+  Dialog,
+  Portal
 } from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import Header from "./header";
@@ -54,6 +56,7 @@ import { getClient, getSavedCredentials, setValueFromEvent } from "./utils";
 import { IoMdHeart, IoMdCloudDownload, IoMdRefresh } from "react-icons/io";
 import { toaster } from "@/components/ui/toaster";
 import { Endpoint } from "@smithy/types";
+import { CloseButton } from "@/components/ui/close-button";
 
 export default function Page() {
   const userUpstreamRef = useRef<null | S3Client>(null);
@@ -101,7 +104,6 @@ export default function Page() {
     loadFileList();
   }
   useEffect(() => {
-    console.table(savedInformation);
     if (savedInformation) {
       const client = getClient(
         {
@@ -114,7 +116,7 @@ export default function Page() {
         onLogin({ client: client, bucket: savedInformation.bucket });
       }
     }
-  }, [savedInformation, onLogin]);
+  }, [savedInformation]);
   const getObjectLink = (object: _Object): string => {
     return endpoint?.protocol +
       "//" +
@@ -278,70 +280,78 @@ export default function Page() {
           >
             <MdCreateNewFolder />
           </IconButton>
-          <DialogRoot
+          <Dialog.Root
             initialFocusEl={() => initialCreateFolderRef.current}
             finalFocusEl={() => finalCreateFolderRef.current}
             open={isCreateFolderOpen}
             onExitComplete={onCreateFolderClose}
           >
-            <DialogContent>
-              <DialogHeader>Create New Folder</DialogHeader>
-              <DialogCloseTrigger />
-              <DialogBody pb={6}>
-                <Field label="Folder Name">
-                  <Input
-                    onChange={(ev) => setValueFromEvent(ev, setNewFolderName)}
-                    ref={initialCreateFolderRef}
-                    placeholder="Folder Name"
-                  />
-                </Field>
-              </DialogBody>
+            <Dialog.Trigger />
+            <Portal>
+              <Dialog.Backdrop />
+              <Dialog.Positioner>
+                <Dialog.Content>
+                  <Dialog.Header><Dialog.Title>Create New Folder</Dialog.Title></Dialog.Header>
+                  <Dialog.CloseTrigger asChild>
+                    <CloseButton size="sm" onClick={onCreateFolderClose} />
+                  </Dialog.CloseTrigger>
+                  <Dialog.Body pb={6}>
+                    <Field label="Folder Name">
+                      <Input
+                        onChange={(ev) => setValueFromEvent(ev, setNewFolderName)}
+                        ref={initialCreateFolderRef}
+                        placeholder="Folder Name"
+                      />
+                    </Field>
+                  </Dialog.Body>
 
-              <DialogFooter>
-                <Button
-                  onClick={async () => {
-                    setIsLoading(true);
-                    if (newFolderName) {
-                      let name = newFolderName;
-                      if (!name.endsWith("/")) {
-                        name += "/";
-                      }
-                      const command = new PutObjectCommand({
-                        Bucket: bucket.current,
-                        Key: name
-                      });
-                      user.current
-                        ?.send(command)
-                        .catch((err) => {
+                  <Dialog.Footer>
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        if (newFolderName) {
+                          let name = newFolderName;
+                          if (!name.endsWith("/")) {
+                            name += "/";
+                          }
+                          const command = new PutObjectCommand({
+                            Bucket: bucket.current,
+                            Key: name
+                          });
+                          user.current
+                            ?.send(command)
+                            .catch((err) => {
+                              toaster.create({
+                                title: "Error while creating folder",
+                                description: err,
+                                type: "error",
+                                duration: 5000,
+                              });
+                            })
+                            .finally(() => {
+                              loadFileList();
+                            });
+                          onCreateFolderClose();
+                        } else {
                           toaster.create({
-                            title: "Error while creating folder",
-                            description: err,
+                            title: "Input Error",
+                            description: "Ensure that required inputs are filled",
                             type: "error",
                             duration: 5000,
                           });
-                        })
-                        .finally(() => {
-                          loadFileList();
-                        });
-                      onCreateFolderClose();
-                    } else {
-                      toaster.create({
-                        title: "Input Error",
-                        description: "Ensure that required inputs are filled",
-                        type: "error",
-                        duration: 5000,
-                      });
-                    }
-                  }}
-                  colorPalette="blue"
-                  mr={3}
-                >
-                  Create
-                </Button>
-                <Button onClick={onCreateFolderClose}>Cancel</Button>
-              </DialogFooter>
-            </DialogContent>
-          </DialogRoot>
+                        }
+                      }}
+                      colorPalette="blue"
+                      mr={3}
+                    >
+                      Create
+                    </Button>
+                    <Button onClick={onCreateFolderClose}>Cancel</Button>
+                  </Dialog.Footer>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
         </GridItem>
         <GridItem w="100%">
           <IconButton

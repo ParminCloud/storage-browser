@@ -8,13 +8,13 @@ import {
   IconButton,
   Icon
 } from "@chakra-ui/react";
-import { IoMoon, IoSunnyOutline } from "react-icons/io5";
 import { RxHamburgerMenu } from "react-icons/rx";
 import LoginDialog from "./loginDialog";
 import { S3Client } from "@aws-sdk/client-s3";
 import { MdStorage } from "react-icons/md";
-import { useTheme } from 'next-themes'
-import { Button } from "@/components/ui/button"
+import { useTheme } from 'next-themes';
+import { Button } from "@/components/ui/button";
+import { ColorModeButton } from "@/components/ui/color-mode";
 const Header = ({
   onLogin,
   user
@@ -69,11 +69,7 @@ const Header = ({
         >
           {user ? "Logout" : "Login"}
         </Button>
-        <IconButton
-          onClick={() => setTheme(theme === "dark" && "light" || "dark")}
-          variant={"ghost"}
-          aria-label="Color Mode"
-        >{theme === "light" ? <IoMoon /> : <IoSunnyOutline />}</IconButton>
+        <ColorModeButton />
         <LoginDialog
           onLogin={onLogin}
           open={isDialogOpen}
@@ -84,7 +80,7 @@ const Header = ({
           }}
         />
       </Stack>
-    </Flex>
+    </Flex >
   );
 };
 

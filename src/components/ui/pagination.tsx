@@ -174,7 +174,6 @@ export const PaginationItems = (props: React.HTMLAttributes<HTMLElement>) => {
             <PaginationItem
               key={index}
               type="page"
-              hidden={page.value === Infinity}
               value={page.value}
               {...props}
             />
@@ -198,7 +197,7 @@ export const PaginationPageText = React.forwardRef<
   const content = React.useMemo(() => {
     if (format === "short") return `${page} / ${totalPages}`
     if (format === "compact") return `${page} of ${totalPages}`
-    return `${pageRange.start + 1} - ${pageRange.end} of ${count}`
+    return `${pageRange.start + 1} - ${Math.min(pageRange.end, count)} of ${count}`
   }, [format, page, totalPages, pageRange, count])
 
   return (

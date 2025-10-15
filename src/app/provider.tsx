@@ -1,16 +1,15 @@
 "use client"
 
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react"
-import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/toaster";
-
+import { ColorModeProvider } from "@/components/ui/color-mode"
+import { ChakraProvider, defaultSystem } from "@chakra-ui/react"
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <ChakraProvider value={defaultSystem}>
-      <ThemeProvider enableColorScheme attribute="class" disableTransitionOnChange>
-        <Toaster />
+      <ColorModeProvider>
         {props.children}
-      </ThemeProvider>
+        <Toaster />
+      </ColorModeProvider>
     </ChakraProvider>
   )
 }
