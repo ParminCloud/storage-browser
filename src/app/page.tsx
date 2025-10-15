@@ -253,7 +253,7 @@ export default function Page() {
       const isOpen = !!expandedFolders[node.key];
       const rows: React.ReactNode[] = [];
       rows.push(
-        <Table.Row key={node.key}>
+        <Table.Row key={node.key} backgroundColor={"custom-teal-bg-color"}>
           <Table.Cell>
             <Box onClick={() => toggleFolder(node.key)} cursor="pointer" pl={paddingLeft}>
               <span style={{"display": "flex"}}>{isOpen ? <FaArrowDown/> : <FaArrowRight/>}&nbsp;&nbsp;{node.name}</span>
@@ -290,7 +290,7 @@ export default function Page() {
     }
     // file
     return (
-      <Table.Row key={node.key}>
+      <Table.Row key={node.key} backgroundColor={"custom-teal-bg-color"}>
         <Table.Cell style={{ paddingLeft }}>{node.name}</Table.Cell>
         <Table.Cell>{node.lastModified ? moment(node.lastModified).fromNow() : ""}</Table.Cell>
         <Table.Cell>{node.lastModified?.toString() || ""}</Table.Cell>
@@ -599,7 +599,7 @@ export default function Page() {
         <Table.ScrollArea marginBottom={10}>
           <Table.Root>
             <Table.Header>
-              <Table.Row>
+              <Table.Row backgroundColor={"custom-teal-bg-color"}>
                 <Table.ColumnHeader>Name</Table.ColumnHeader>
                 <Table.ColumnHeader>Last Modified</Table.ColumnHeader>
                 <Table.ColumnHeader>Timestamp</Table.ColumnHeader>
@@ -617,7 +617,7 @@ export default function Page() {
               })()}
             </Table.Body>
             <Table.Footer>
-              <Table.Row>
+              <Table.Row backgroundColor={"custom-teal-bg-color"}>
                 <Table.ColumnHeader>Name</Table.ColumnHeader>
                 <Table.ColumnHeader>Last Modified</Table.ColumnHeader>
                 <Table.ColumnHeader>Timestamp</Table.ColumnHeader>

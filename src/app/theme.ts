@@ -2,6 +2,13 @@ import { defineConfig, createSystem, defaultConfig } from "@chakra-ui/react"
 
 const config = defineConfig({
   theme: {
+    semanticTokens: {
+      colors: {
+        "custom-teal-bg-color": {
+          value: { _light: "var(--chakra-colors-gray-50)", _dark: "var(--chakra-colors-teal-950)" },
+        },
+      },
+    },
     tokens: {
       fonts: {
         heading: { value: "var(--font-geist)" },
@@ -12,7 +19,8 @@ const config = defineConfig({
   },
   globalCss: {
     html: {
-      colorPalette: "teal", // Change this to any color palette you prefer
+      colorPalette: "teal",
+      bgColor: "custom-teal-bg-color"
     },
   },
 })
