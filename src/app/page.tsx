@@ -114,7 +114,7 @@ export default function Page() {
         onLogin({ client: client, bucket: savedInformation.bucket });
       }
     }
-  }, [savedInformation]);
+  }, [savedInformation, onLogin]);
   const getObjectLink = (object: _Object): string => {
     return endpoint?.protocol +
       "//" +
