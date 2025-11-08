@@ -1,4 +1,4 @@
-import { Field } from "@/components/ui/field"
+import { Field } from "@/components/ui/field";
 import {
   DialogBody,
   DialogCloseTrigger,
@@ -7,13 +7,9 @@ import {
   DialogHeader,
   DialogRoot,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { toaster } from "@/components/ui/toaster"
-import {
-  Button,
-  Input,
-  Code,
-} from "@chakra-ui/react";
+} from "@/components/ui/dialog";
+import { toaster } from "@/components/ui/toaster";
+import { Button, Input, Code } from "@chakra-ui/react";
 import { setValueFromEvent } from "./utils";
 import { useState } from "react";
 
@@ -22,7 +18,7 @@ const DeleteObject = ({
   onClose,
   cancelRef,
   objectKey,
-  action
+  action,
 }: {
   open: boolean;
   onOpen: () => void;
@@ -34,11 +30,7 @@ const DeleteObject = ({
   const [key, setKey] = useState("");
 
   return (
-    <DialogRoot
-      open={open}
-      onExitComplete={onClose}
-      role="alertdialog"
-    >
+    <DialogRoot open={open} onExitComplete={onClose} role="alertdialog">
       <DialogContent>
         <DialogHeader fontSize="lg" fontWeight="bold">
           <DialogTitle>Delete Object</DialogTitle>

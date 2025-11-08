@@ -4,20 +4,20 @@
 
 ## Powered by
 
-* [pnpm](https://pnpm.io/)
-* [React](https://react.dev/)
-* [Nuxt.JS](https://nextjs.org/)
-* [Chakra UI](https://chakra-ui.com/)
-* [TypeScript](https://www.typescriptlang.org/)
-* [react-icons](https://react-icons.github.io/react-icons/)
-* [JavaScript S3 Client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-s3)
+- [pnpm](https://pnpm.io/)
+- [React](https://react.dev/)
+- [Nuxt.JS](https://nextjs.org/)
+- [Chakra UI](https://chakra-ui.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [react-icons](https://react-icons.github.io/react-icons/)
+- [JavaScript S3 Client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-s3)
 
 ## Feature
 
-* Directory/Sub-Directory support
-* Browse files
-* Object actions (Upload, Download, Remove, etc.)
-* Dark/Light Mode :)
+- Directory/Sub-Directory support
+- Browse files
+- Object actions (Upload, Download, Remove, etc.)
+- Dark/Light Mode :)
 
 ## Deployment
 
@@ -25,10 +25,10 @@ Check out [deployments](./deployments/README.md)
 
 ## TODO
 
-* [x] Pagination
-* [x] Save credentials in browser (currently localStorage)
-* [ ] Creating and Using more reusable components (specially Dialogs in page)
-* [x] More Docs (Screenshot, Deployment)
+- [x] Pagination
+- [x] Save credentials in browser (currently localStorage)
+- [ ] Creating and Using more reusable components (specially Dialogs in page)
+- [x] More Docs (Screenshot, Deployment)
 
 ## Contributing
 

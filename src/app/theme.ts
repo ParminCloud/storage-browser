@@ -1,11 +1,14 @@
-import { defineConfig, createSystem, defaultConfig } from "@chakra-ui/react"
+import { defineConfig, createSystem, defaultConfig } from "@chakra-ui/react";
 
 const config = defineConfig({
   theme: {
     semanticTokens: {
       colors: {
         "custom-teal-bg-color": {
-          value: { _light: "var(--chakra-colors-gray-50)", _dark: "var(--chakra-colors-teal-950)" },
+          value: {
+            _light: "var(--chakra-colors-gray-50)",
+            _dark: "var(--chakra-colors-teal-950)",
+          },
         },
       },
     },
@@ -20,10 +23,9 @@ const config = defineConfig({
   globalCss: {
     html: {
       colorPalette: "teal",
-      bgColor: "custom-teal-bg-color"
+      bgColor: "custom-teal-bg-color",
     },
   },
-})
+});
 
-
-export const system = createSystem(defaultConfig, config)
+export const system = createSystem(defaultConfig, config);

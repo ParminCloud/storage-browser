@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Field } from "@/components/ui/field"
+import { Field } from "@/components/ui/field";
 import {
   DialogBody,
   DialogCloseTrigger,
@@ -9,14 +9,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogRoot,
-  DialogTitle
-} from "@/components/ui/dialog"
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   PaginationNextTrigger,
   PaginationPrevTrigger,
   PaginationRoot,
-} from "@/components/ui/pagination"
-import { Alert } from "@/components/ui/alert"
+} from "@/components/ui/pagination";
+import { Alert } from "@/components/ui/alert";
 import {
   Table,
   IconButton,
@@ -45,10 +45,15 @@ import {
   DeleteObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { MdCreateNewFolder, MdOutlineFileUpload } from "react-icons/md";
 import moment from "moment";
-import { FaArrowDown, FaArrowRight, FaExternalLinkAlt, FaFileSignature } from "react-icons/fa";
+import {
+  FaArrowDown,
+  FaArrowRight,
+  FaExternalLinkAlt,
+  FaFileSignature,
+} from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { __ServiceExceptionOptions } from "@aws-sdk/client-s3/dist-types/models/S3ServiceException";
 import DeleteObject from "./deleteObject";
@@ -58,15 +63,18 @@ import { toaster } from "@/components/ui/toaster";
 import { Endpoint } from "@smithy/types";
 import { CloseButton } from "@/components/ui/close-button";
 import { LuFolderClosed, LuFolderOpen } from "react-icons/lu";
+import FileInput from "@/components/inputs/file";
 
 export default function Page() {
   const userUpstreamRef = useRef<null | S3Client>(null);
   const [selectedObject, setSelectedObject] = useState("");
   const bucket = useRef("");
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadFile, setUploadFile] = useState<null | File>(null);
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [objectList, setObjectList] = useState<_Object[]>([]);
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [expandedFolders, setExpandedFolders] = useState<
+    Record<string, boolean>
+  >({});
   const [newFolderName, setNewFolderName] = useState<string | null>(null);
   const [fileFolderName, setFileFolderName] = useState<string | null>(null);
   const deleteCancelRef = useRef(null);
@@ -79,16 +87,19 @@ export default function Page() {
   const [currentToken, setCurrentToken] = useState<undefined | string>();
   const [nextToken, setNextToken] = useState<undefined | string>();
   const [prevTokens, setPrevTokens] = useState<Array<undefined | string>>([]);
-  const [savedInformation,] = useState(getSavedCredentials())
+  const [savedInformation] = useState(getSavedCredentials());
   const userRefHandler = {
-    set: (target: RefObject<S3Client | null>, prop: keyof RefObject<S3Client | null>, newValue: any, _: any) => {
+    set: (
+      target: RefObject<S3Client | null>,
+      prop: keyof RefObject<S3Client | null>,
+      newValue: any,
+      _: any,
+    ) => {
       target[prop] = newValue;
       if (user.current?.config?.endpoint) {
-        user.current.config
-          .endpoint()
-          .then((v: Endpoint) => {
-            setEndpoint(v);
-          })
+        user.current.config.endpoint().then((v: Endpoint) => {
+          setEndpoint(v);
+        });
       }
       return true;
     },
@@ -96,7 +107,7 @@ export default function Page() {
   const user = new Proxy(userUpstreamRef, userRefHandler);
   const onLogin = ({
     client,
-    bucket: inputBucket
+    bucket: inputBucket,
   }: {
     client: S3Client;
     bucket: string;
@@ -104,30 +115,30 @@ export default function Page() {
     bucket.current = inputBucket;
     user.current = client;
     loadFileList();
-  }
+  };
   useEffect(() => {
     if (savedInformation) {
-      const client = getClient(
-        {
-          endpoint: savedInformation.endpoint.value,
-          accessKey: savedInformation.accessKey,
-          secretKey: savedInformation.secretKey
-        }
-      );
+      const client = getClient({
+        endpoint: savedInformation.endpoint.value,
+        accessKey: savedInformation.accessKey,
+        secretKey: savedInformation.secretKey,
+      });
       if (client) {
         onLogin({ client: client, bucket: savedInformation.bucket });
       }
     }
   }, [savedInformation]);
   const getObjectLink = (object: _Object): string => {
-    return endpoint?.protocol +
+    return (
+      endpoint?.protocol +
       "//" +
       endpoint?.hostname +
       "/" +
       bucket?.current +
       "/" +
       object.Key
-  }
+    );
+  };
 
   type TreeNode = {
     name: string;
@@ -175,7 +186,12 @@ export default function Page() {
         const part = parts[i];
         const isLast = i === parts.length - 1;
         const nodeKey = prefix ? `${prefix}/${part}` : part;
-        const folderKey = isLast && obj.Key.endsWith("/") ? nodeKey + "/" : (isLast ? nodeKey : nodeKey + "/");
+        const folderKey =
+          isLast && obj.Key.endsWith("/")
+            ? nodeKey + "/"
+            : isLast
+              ? nodeKey
+              : nodeKey + "/";
         if (!currChildren[folderKey]) {
           currChildren[folderKey] = {
             name: part,
@@ -183,7 +199,10 @@ export default function Page() {
             isFolder: !isLast || obj.Key.endsWith("/"),
             children: [],
             size: isLast && !obj.Key.endsWith("/") ? obj.Size : undefined,
-            lastModified: isLast && obj.LastModified ? new Date(obj.LastModified) : undefined,
+            lastModified:
+              isLast && obj.LastModified
+                ? new Date(obj.LastModified)
+                : undefined,
           };
         }
         const node = currChildren[folderKey];
@@ -205,17 +224,30 @@ export default function Page() {
     // Because the above approach using dynamic maps is getting convoluted, implement a straightforward recursive builder
     const rootNodes: TreeNode[] = [];
 
-    const addToNodes = (nodes: TreeNode[], parts: string[], fullKey: string, obj: _Object) => {
+    const addToNodes = (
+      nodes: TreeNode[],
+      parts: string[],
+      fullKey: string,
+      obj: _Object,
+    ) => {
       if (parts.length === 0) return;
       const [head, ...rest] = parts;
       const isLast = rest.length === 0;
       const folder = isLast && fullKey.endsWith("/") ? true : !isLast;
-      const nodeKey = isLast ? (fullKey.endsWith("/") ? fullKey : fullKey) : `${head}/`;
+      const nodeKey = isLast
+        ? fullKey.endsWith("/")
+          ? fullKey
+          : fullKey
+        : `${head}/`;
       let node = nodes.find((n) => n.name === head && n.isFolder === folder);
       if (!node) {
         node = {
           name: head,
-          key: isLast ? fullKey : (nodes === rootNodes ? `${head}/` : `${nodes[0]?.key || ""}${head}/`),
+          key: isLast
+            ? fullKey
+            : nodes === rootNodes
+              ? `${head}/`
+              : `${nodes[0]?.key || ""}${head}/`,
           isFolder: !isLast || fullKey.endsWith("/"),
           children: [],
         };
@@ -225,7 +257,9 @@ export default function Page() {
         // set file properties when it's a file
         if (!node.isFolder) {
           node.size = obj.Size;
-          node.lastModified = obj.LastModified ? new Date(obj.LastModified) : undefined;
+          node.lastModified = obj.LastModified
+            ? new Date(obj.LastModified)
+            : undefined;
           node.key = fullKey;
         }
         return;
@@ -248,7 +282,11 @@ export default function Page() {
     setExpandedFolders((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const renderNode = (node: TreeNode, depth = 0, index?: number): React.ReactNode => {
+  const renderNode = (
+    node: TreeNode,
+    depth = 0,
+    index?: number,
+  ): React.ReactNode => {
     const paddingLeft = `${depth * 20}px`;
     if (node.isFolder) {
       const isOpen = !!expandedFolders[node.key];
@@ -256,26 +294,37 @@ export default function Page() {
       rows.push(
         <Table.Row key={node.key} backgroundColor={"custom-teal-bg-color"}>
           <Table.Cell>
-            <Box onClick={() => toggleFolder(node.key)} cursor="pointer" pl={paddingLeft}>
-              <span style={{ "display": "flex" }}>{isOpen ? <FaArrowDown /> : <FaArrowRight />}&nbsp;&nbsp;{node.name}</span>
+            <Box
+              onClick={() => toggleFolder(node.key)}
+              cursor="pointer"
+              pl={paddingLeft}
+            >
+              <span style={{ display: "flex" }}>
+                {isOpen ? <FaArrowDown /> : <FaArrowRight />}&nbsp;&nbsp;
+                {node.name}
+              </span>
             </Box>
           </Table.Cell>
           <Table.Cell></Table.Cell>
           <Table.Cell></Table.Cell>
           <Table.Cell></Table.Cell>
           <Table.Cell>
-            <Stack direction={{ base: "column", md: "row" }} width={{ base: "full", md: "auto" }} mt={{ base: 4, md: 0 }}>
-              <IconButton size="sm" onClick={() => { toggleFolder(node.key); }}>
-                {
-                  isOpen ?
-                    <LuFolderOpen />
-                    :
-                    <LuFolderClosed />
-                }
+            <Stack
+              direction={{ base: "column", md: "row" }}
+              width={{ base: "full", md: "auto" }}
+              mt={{ base: 4, md: 0 }}
+            >
+              <IconButton
+                size="sm"
+                onClick={() => {
+                  toggleFolder(node.key);
+                }}
+              >
+                {isOpen ? <LuFolderOpen /> : <LuFolderClosed />}
               </IconButton>
             </Stack>
           </Table.Cell>
-        </Table.Row>
+        </Table.Row>,
       );
       if (isOpen && node.children) {
         node.children.forEach((child) => {
@@ -293,16 +342,24 @@ export default function Page() {
     return (
       <Table.Row key={node.key} backgroundColor={"custom-teal-bg-color"}>
         <Table.Cell style={{ paddingLeft }}>{node.name}</Table.Cell>
-        <Table.Cell>{node.lastModified ? moment(node.lastModified).fromNow() : ""}</Table.Cell>
-        <Table.Cell>{node.lastModified?.toString() || ""}</Table.Cell>
-        <Table.Cell><FormatByte value={node.size || 0} /></Table.Cell>
         <Table.Cell>
-          <Stack direction={{ base: "column", md: "row" }} width={{ base: "full", md: "auto" }} mt={{ base: 4, md: 0 }}>
+          {node.lastModified ? moment(node.lastModified).fromNow() : ""}
+        </Table.Cell>
+        <Table.Cell>{node.lastModified?.toString() || ""}</Table.Cell>
+        <Table.Cell>
+          <FormatByte value={node.size || 0} />
+        </Table.Cell>
+        <Table.Cell>
+          <Stack
+            direction={{ base: "column", md: "row" }}
+            width={{ base: "full", md: "auto" }}
+            mt={{ base: 4, md: 0 }}
+          >
             <IconButton
               onClick={() => {
                 const command = new GetObjectCommand({
                   Bucket: bucket.current,
-                  Key: node.key
+                  Key: node.key,
                 });
                 toaster.create({
                   title: "Downloading object",
@@ -315,42 +372,87 @@ export default function Page() {
                   .then(async (response) => {
                     const data = await response.Body?.transformToByteArray();
                     if (data) {
-                      const blob = new Blob([data as BlobPart], { type: response.ContentType });
+                      const blob = new Blob([data as BlobPart], {
+                        type: response.ContentType,
+                      });
                       const url = URL.createObjectURL(blob);
                       window.open(url);
                     } else {
-                      toaster.create({ title: "Error while downloading object", description: "Cannot download an empty object", type: "error", duration: 5000, });
+                      toaster.create({
+                        title: "Error while downloading object",
+                        description: "Cannot download an empty object",
+                        type: "error",
+                        duration: 5000,
+                      });
                     }
                   })
                   .catch((err) => {
-                    toaster.create({ title: "Error while downloading object", description: err, type: "error", duration: 5000, });
+                    toaster.create({
+                      title: "Error while downloading object",
+                      description: err.toString(),
+                      type: "error",
+                      duration: 5000,
+                    });
                   })
-                  .finally(() => { loadFileList(); });
+                  .finally(() => {
+                    loadFileList();
+                  });
               }}
               aria-label="Download Object"
-            ><IoMdCloudDownload /></IconButton>
+            >
+              <IoMdCloudDownload />
+            </IconButton>
 
-            <IconButton aria-label="Remove Object" onClick={() => { if (node.key) { setSelectedObject(node.key); onDeleteOpen(); } }}><MdDelete /></IconButton>
-            <ClipboardRoot value={endpoint?.protocol + "//" + bucket?.current + "." + endpoint?.hostname + "/" + node.key} timeout={1000}>
+            <IconButton
+              aria-label="Remove Object"
+              onClick={() => {
+                if (node.key) {
+                  setSelectedObject(node.key);
+                  onDeleteOpen();
+                }
+              }}
+            >
+              <MdDelete />
+            </IconButton>
+            <ClipboardRoot
+              value={
+                endpoint?.protocol +
+                "//" +
+                bucket?.current +
+                "." +
+                endpoint?.hostname +
+                "/" +
+                node.key
+              }
+              timeout={1000}
+            >
               <ClipboardIconButton size="md" variant="solid" />
             </ClipboardRoot>
-            <IconButton size="md" variant="solid" onClick={() => {
-              if (user.current) {
-                getSignedUrl(user.current, new GetObjectCommand({
-                  Bucket: bucket?.current,
-                  Key: node.key,
-                })).then((url) => {
-                  navigator.clipboard.writeText(url).then(()=>{
-                  toaster.create({
-                    title: "Presigned URL Copied",
-                    description: "The presigned URL has been copied to clipboard",
-                    type: "success",
-                    duration: 3000,
+            <IconButton
+              size="md"
+              variant="solid"
+              onClick={() => {
+                if (user.current) {
+                  getSignedUrl(
+                    user.current,
+                    new GetObjectCommand({
+                      Bucket: bucket?.current,
+                      Key: node.key,
+                    }),
+                  ).then((url) => {
+                    navigator.clipboard.writeText(url).then(() => {
+                      toaster.create({
+                        title: "Presigned URL Copied",
+                        description:
+                          "The presigned URL has been copied to clipboard",
+                        type: "success",
+                        duration: 3000,
+                      });
+                    });
                   });
-                });
-                })
-              }
-            }}>
+                }
+              }}
+            >
               <FaFileSignature />
             </IconButton>
           </Stack>
@@ -361,17 +463,17 @@ export default function Page() {
   const {
     open: isDeleteOpen,
     onOpen: onDeleteOpen,
-    onClose: onDeleteClose
+    onClose: onDeleteClose,
   } = useDisclosure();
   const {
     open: isCreateFolderOpen,
     onOpen: onCreateFolderOpen,
-    onClose: onCreateFolderClose
+    onClose: onCreateFolderClose,
   } = useDisclosure();
   const {
     open: isUploadFileOpen,
     onOpen: onUploadFileOpen,
-    onClose: onUploadFileClose
+    onClose: onUploadFileClose,
   } = useDisclosure();
   const loadFileList = async (token?: string) => {
     if (user.current) {
@@ -379,13 +481,14 @@ export default function Page() {
       const command = new ListObjectsV2Command({
         Bucket: bucket.current,
         MaxKeys: 15,
-        ContinuationToken: token
+        ContinuationToken: token,
       });
       try {
         setObjectList([]);
-        const { Contents, NextContinuationToken } = await user.current.send(command);
+        const { Contents, NextContinuationToken } =
+          await user.current.send(command);
         setObjectList(Contents || []);
-        setNextToken(NextContinuationToken)
+        setNextToken(NextContinuationToken);
       } catch (err: any) {
         toaster.create({
           title: "Error while getting object list",
@@ -400,10 +503,7 @@ export default function Page() {
   };
   return (
     <Box paddingLeft={"2.5vw"} paddingRight={"2.5vw"}>
-      <Header
-        user={user.current}
-        onLogin={onLogin}
-      />
+      <Header user={user.current} onLogin={onLogin} />
       <Grid
         templateColumns="100fr 1fr 1fr"
         gap="1"
@@ -426,7 +526,9 @@ export default function Page() {
             onExitComplete={onUploadFileClose}
           >
             <DialogContent>
-              <DialogHeader><DialogTitle>Upload File</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>Upload File</DialogTitle>
+              </DialogHeader>
               <DialogCloseTrigger asChild>
                 <CloseButton size="sm" onClick={onUploadFileClose} />
               </DialogCloseTrigger>
@@ -439,24 +541,24 @@ export default function Page() {
                   />
                 </Field>
                 <Field label="File (browse or drag)" marginTop={5}>
-                  <Input
-                    onChange={(ev) => {
-                      if (ev.target.files) {
-                        setUploadFile(ev.target.files[0]);
-                      }
-                    }}
-                    type="file"
-                    id="uploader"
-                    variant="outline"
-                  />
+                  <FileInput files={uploadFiles} setFiles={setUploadFiles} />
                 </Field>
               </DialogBody>
 
               <DialogFooter>
                 <Button
                   onClick={async () => {
+                    if (!uploadFiles) {
+                      toaster.create({
+                        title: "Input Error",
+                        description: "Ensure that required inputs are filled",
+                        type: "error",
+                        duration: 5000,
+                      });
+                      return;
+                    }
                     setIsLoading(true);
-                    if (uploadFile) {
+                    for (const uploadFile of uploadFiles) {
                       let key = "";
                       if (fileFolderName) {
                         key = fileFolderName;
@@ -469,8 +571,8 @@ export default function Page() {
                         const command = new PutObjectCommand({
                           Bucket: bucket.current,
                           Key: key,
-                          Body: uploadFile,
-                          ContentType: uploadFile.type
+                          Body: await uploadFile.bytes(),
+                          ContentType: uploadFile.type,
                         });
                         setIsLoading(true);
                         user.current
@@ -478,39 +580,32 @@ export default function Page() {
                           .catch((err) => {
                             toaster.create({
                               title: "Error while uploading object",
-                              description: err,
+                              description: err.toString(),
                               type: "error",
                               duration: 5000,
                             });
                           })
                           .finally(() => {
+                            setUploadFiles([]);
                             loadFileList();
                           });
+                        onUploadFileClose();
                       }
-                      onUploadFileClose();
-                    } else {
-                      toaster.create({
-                        title: "Input Error",
-                        description: "Ensure that required inputs are filled",
-                        type: "error",
-                        duration: 5000,
-                      });
                     }
                   }}
                   variant="solid"
                 >
                   Upload
                 </Button>
-                <Button variant={"outline"} onClick={onUploadFileClose}>Cancel</Button>
+                <Button variant={"outline"} onClick={onUploadFileClose}>
+                  Cancel
+                </Button>
               </DialogFooter>
             </DialogContent>
           </DialogRoot>
         </GridItem>
         <GridItem w="100%">
-          <IconButton
-            onClick={onCreateFolderOpen}
-            aria-label="New Folder"
-          >
+          <IconButton onClick={onCreateFolderOpen} aria-label="New Folder">
             <MdCreateNewFolder />
           </IconButton>
           <DialogRoot
@@ -520,7 +615,9 @@ export default function Page() {
             onExitComplete={onCreateFolderClose}
           >
             <DialogContent>
-              <DialogHeader><DialogTitle>Create New Folder</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>Create New Folder</DialogTitle>
+              </DialogHeader>
               <DialogCloseTrigger asChild>
                 <CloseButton size="sm" onClick={onCreateFolderClose} />
               </DialogCloseTrigger>
@@ -545,14 +642,14 @@ export default function Page() {
                       }
                       const command = new PutObjectCommand({
                         Bucket: bucket.current,
-                        Key: name
+                        Key: name,
                       });
                       user.current
                         ?.send(command)
                         .catch((err) => {
                           toaster.create({
                             title: "Error while creating folder",
-                            description: err,
+                            description: err.toString(),
                             type: "error",
                             duration: 5000,
                           });
@@ -574,16 +671,15 @@ export default function Page() {
                 >
                   Create
                 </Button>
-                <Button variant={"outline"} onClick={onCreateFolderClose}>Cancel</Button>
+                <Button variant={"outline"} onClick={onCreateFolderClose}>
+                  Cancel
+                </Button>
               </DialogFooter>
             </DialogContent>
           </DialogRoot>
         </GridItem>
         <GridItem w="100%">
-          <IconButton
-            onClick={() => loadFileList()}
-            aria-label="Refresh"
-          >
+          <IconButton onClick={() => loadFileList()} aria-label="Refresh">
             <IoMdRefresh />
           </IconButton>
         </GridItem>
@@ -598,14 +694,14 @@ export default function Page() {
           setIsLoading(true);
           const command = new DeleteObjectCommand({
             Bucket: bucket.current,
-            Key: selectedObject
+            Key: selectedObject,
           });
           user.current
             ?.send(command)
             .catch((err) => {
               toaster.create({
                 title: "Error while Removing object",
-                description: err,
+                description: err.toString(),
                 type: "error",
                 duration: 5000,
               });
@@ -632,7 +728,9 @@ export default function Page() {
               {(() => {
                 const tree = buildTree(objectList);
                 return tree.map((node) => (
-                  <React.Fragment key={node.key}>{renderNode(node)}</React.Fragment>
+                  <React.Fragment key={node.key}>
+                    {renderNode(node)}
+                  </React.Fragment>
                 ));
               })()}
             </Table.Body>
@@ -647,14 +745,16 @@ export default function Page() {
             </Table.Footer>
           </Table.Root>
           <Center paddingTop="1%">
-            <PaginationRoot page={page} count={Infinity} onPageChange={
-              (e) => {
+            <PaginationRoot
+              page={page}
+              count={Infinity}
+              onPageChange={(e) => {
                 let token: string | undefined = undefined;
                 if (e.page > page) {
                   if (nextToken) {
                     setPrevTokens((prev) => [...prev, currentToken]);
                     setCurrentToken(nextToken);
-                    token = nextToken
+                    token = nextToken;
                   } else {
                     if (prevTokens.length > 0) {
                       const previousToken = prevTokens.pop();
@@ -664,8 +764,10 @@ export default function Page() {
                     }
                   }
                 }
-                loadFileList(token).then(() => setPage(e.page))
-              }} pageSize={15}>
+                loadFileList(token).then(() => setPage(e.page));
+              }}
+              pageSize={15}
+            >
               <PaginationPrevTrigger />
               <PaginationNextTrigger />
             </PaginationRoot>
@@ -679,19 +781,26 @@ export default function Page() {
       <footer
         style={{
           bottom: 0,
-          width: "100%"
+          width: "100%",
         }}
       >
         <Center>
           <Text
             bgColor="var(--chakra-colors-chakra-body-bg)"
             fontSize="md"
-            alignContent={'center'}
+            alignContent={"center"}
             color="var(--chakra-colors-chakra-body-text)"
           >
-            Made with <Icon color={"red"}><IoMdHeart /></Icon> by {" "}
+            Made with{" "}
+            <Icon color={"red"}>
+              <IoMdHeart />
+            </Icon>{" "}
+            by{" "}
             <Link href="https://parmin.cloud">
-              ParminCloud <Icon><FaExternalLinkAlt max="2px" /></Icon>
+              ParminCloud{" "}
+              <Icon>
+                <FaExternalLinkAlt max="2px" />
+              </Icon>
             </Link>
           </Text>
         </Center>

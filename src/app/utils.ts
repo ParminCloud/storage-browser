@@ -3,7 +3,7 @@ import { ChangeEvent } from "react";
 
 export function setValueFromEvent(
   ev: ChangeEvent<HTMLInputElement>,
-  setter: (ev: any) => void
+  setter: (ev: any) => void,
 ) {
   setter(ev.target.value);
 }
@@ -18,17 +18,26 @@ export function readablizeBytes(bytes: number) {
 }
 
 export function getSavedCredentials() {
-  const isServer = typeof window === 'undefined'
-  const savedInformation = (!isServer) && JSON.parse(localStorage.getItem("loginInformation") || "null");
+  const isServer = typeof window === "undefined";
+  const savedInformation =
+    !isServer && JSON.parse(localStorage.getItem("loginInformation") || "null");
   return savedInformation;
 }
-export function getClient({ endpoint, accessKey, secretKey }: { endpoint: string | null, accessKey: string | null, secretKey: string | null }) {
+export function getClient({
+  endpoint,
+  accessKey,
+  secretKey,
+}: {
+  endpoint: string | null;
+  accessKey: string | null;
+  secretKey: string | null;
+}) {
   if (endpoint && accessKey && secretKey) {
     return new S3Client({
       endpoint: endpoint,
       credentials: {
         accessKeyId: accessKey,
-        secretAccessKey: secretKey
+        secretAccessKey: secretKey,
       },
       region: "us-east-1",
     });

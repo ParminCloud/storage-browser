@@ -9,18 +9,18 @@ import {
   DialogHeader,
   DialogRoot,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
-import { toaster } from "@/components/ui/toaster"
-import { Field } from "@/components/ui/field"
-import { Radio, RadioGroup } from "@/components/ui/radio"
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toaster } from "@/components/ui/toaster";
+import { Field } from "@/components/ui/field";
+import { Radio, RadioGroup } from "@/components/ui/radio";
 import {
   Button,
   Input,
   Stack,
   RadioGroupValueChangeDetails,
   Fieldset,
-  Box
+  Box,
 } from "@chakra-ui/react";
 import { getClient, getSavedCredentials, setValueFromEvent } from "./utils";
 import { S3Client } from "@aws-sdk/client-s3";
@@ -29,7 +29,7 @@ import { CloseButton } from "@/components/ui/close-button";
 const LoginDialog = ({
   open,
   onClose,
-  onLogin
+  onLogin,
 }: {
   open: boolean;
   onOpen: () => void;
@@ -39,14 +39,25 @@ const LoginDialog = ({
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
   const endpoints: Record<string, string> = {
-    "https://sas.amin.parminstorage.ir": "https://sas.amin.parminstorage.ir (Amin, SAS Storage)"
+    "https://sas.amin.parminstorage.ir":
+      "https://sas.amin.parminstorage.ir (Amin, SAS Storage)",
   };
   const savedInformation = getSavedCredentials();
   const [saveToLocal, setSaveToLocal] = React.useState(false);
-  React.useEffect(() => setSaveToLocal(savedInformation !== null), [savedInformation])
-  const [accessKey, setAccessKey] = React.useState(savedInformation?.accessKey || "");
-  const [secretKey, setSecretKey] = React.useState(savedInformation?.secretKey || "");
-  const [endpoint, setEndpoint] = React.useState<RadioGroupValueChangeDetails | null>(savedInformation?.endpoint || null);
+  React.useEffect(
+    () => setSaveToLocal(savedInformation !== null),
+    [savedInformation],
+  );
+  const [accessKey, setAccessKey] = React.useState(
+    savedInformation?.accessKey || "",
+  );
+  const [secretKey, setSecretKey] = React.useState(
+    savedInformation?.secretKey || "",
+  );
+  const [endpoint, setEndpoint] =
+    React.useState<RadioGroupValueChangeDetails | null>(
+      savedInformation?.endpoint || null,
+    );
   const [bucket, setBucket] = React.useState(savedInformation?.bucket || "");
   return (
     <DialogRoot
@@ -56,7 +67,9 @@ const LoginDialog = ({
       onExitComplete={onClose}
     >
       <DialogContent>
-        <DialogHeader><DialogTitle>Login to ParminCloud Storage</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Login to ParminCloud Storage</DialogTitle>
+        </DialogHeader>
         <DialogCloseTrigger asChild>
           <CloseButton size="sm" onClick={onClose} />
         </DialogCloseTrigger>
@@ -87,8 +100,14 @@ const LoginDialog = ({
               />
             </Field>
 
-            <RadioGroup value={endpoint?.value} onValueChange={setEndpoint} mt={4}>
-              <Fieldset.Legend paddingBottom="2%">Region/Storage Class</Fieldset.Legend>
+            <RadioGroup
+              value={endpoint?.value}
+              onValueChange={setEndpoint}
+              mt={4}
+            >
+              <Fieldset.Legend paddingBottom="2%">
+                Region/Storage Class
+              </Fieldset.Legend>
 
               <Stack direction="column">
                 {Object.keys(endpoints).map((key, _) => {
@@ -102,7 +121,9 @@ const LoginDialog = ({
             </RadioGroup>
           </Fieldset.Root>
           <Checkbox
-            gap="4" paddingTop="5%" alignItems="flex-start"
+            gap="4"
+            paddingTop="5%"
+            alignItems="flex-start"
             checked={saveToLocal}
             onCheckedChange={(e) => setSaveToLocal(!!e.checked)}
           >
@@ -118,20 +139,23 @@ const LoginDialog = ({
             onClick={async () => {
               if (endpoint && accessKey && secretKey && bucket) {
                 if (saveToLocal) {
-                  localStorage.setItem("loginInformation",
-                    JSON.stringify(
-                      {
-                        endpoint,
-                        accessKey,
-                        secretKey,
-                        bucket
-                      }
-                    )
-                  )
+                  localStorage.setItem(
+                    "loginInformation",
+                    JSON.stringify({
+                      endpoint,
+                      accessKey,
+                      secretKey,
+                      bucket,
+                    }),
+                  );
                 } else {
-                  localStorage.removeItem("loginInformation")
+                  localStorage.removeItem("loginInformation");
                 }
-                const client = getClient({ endpoint: endpoint.value, accessKey, secretKey });
+                const client = getClient({
+                  endpoint: endpoint.value,
+                  accessKey,
+                  secretKey,
+                });
                 if (client) {
                   onLogin({ client: client, bucket: bucket });
                 }
@@ -149,7 +173,9 @@ const LoginDialog = ({
           >
             Login
           </Button>
-          <Button variant={"outline"} onClick={onClose}>Cancel</Button>
+          <Button variant={"outline"} onClick={onClose}>
+            Cancel
+          </Button>
         </DialogFooter>
       </DialogContent>
     </DialogRoot>

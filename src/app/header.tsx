@@ -6,18 +6,18 @@ import {
   Flex,
   useDisclosure,
   IconButton,
-  Icon
+  Icon,
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import LoginDialog from "./loginDialog";
 import { S3Client } from "@aws-sdk/client-s3";
 import { MdStorage } from "react-icons/md";
-import { useTheme } from 'next-themes';
+import { useTheme } from "next-themes";
 import { Button } from "@chakra-ui/react";
 import { ColorModeButton } from "@/components/ui/color-mode";
 const Header = ({
   onLogin,
-  user
+  user,
 }: {
   onLogin: ({ client, bucket }: { client: S3Client; bucket: string }) => void;
   user: S3Client | null;
@@ -27,29 +27,29 @@ const Header = ({
   const {
     open: isDialogOpen,
     onOpen: onDialogOpen,
-    onClose: onDialogClose
+    onClose: onDialogClose,
   } = useDisclosure();
   const handleToggle = () => (open ? onClose() : onOpen());
   const { theme, setTheme } = useTheme();
   const onLoginFormOpen = () => {
     if (user !== null) {
       localStorage.removeItem("loginInformation");
-      window.location.reload()
-      return
+      window.location.reload();
+      return;
     }
     setLoading(true);
     onDialogOpen();
   };
   return (
-    <Flex
-      align="center"
-      justify="space-between"
-      wrap="wrap"
-      padding={6}
-    >
+    <Flex align="center" justify="space-between" wrap="wrap" padding={6}>
       <Flex align="center">
         <Heading as="h1">
-          <div><Icon><MdStorage /></Icon> Storage Browser</div>
+          <div>
+            <Icon>
+              <MdStorage />
+            </Icon>{" "}
+            Storage Browser
+          </div>
         </Heading>
       </Flex>
 
@@ -80,7 +80,7 @@ const Header = ({
           }}
         />
       </Stack>
-    </Flex >
+    </Flex>
   );
 };
 
