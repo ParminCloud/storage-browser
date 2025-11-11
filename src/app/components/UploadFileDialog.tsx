@@ -1,6 +1,6 @@
 // Upload file dialog component
 import React from "react";
-import { Button, Input } from "@chakra-ui/react";
+import { Button, Input, UseFileUploadReturn } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import {
   DialogBody,
@@ -20,7 +20,7 @@ import { uploadFile } from "../lib/s3-operations";
 interface UploadFileDialogProps {
   open: boolean;
   onClose: () => void;
-  fileUpload: any;
+  fileUpload: UseFileUploadReturn;
   onUploadSuccess: () => void;
   client: any;
   bucket: string;
@@ -66,6 +66,7 @@ export function UploadFileDialog({
       onClose();
     } finally {
       setIsLoading(false);
+      fileUpload.clearFiles();
     }
   };
 
