@@ -1,4 +1,4 @@
-import { FileUpload, Icon, Text, Button } from "@chakra-ui/react";
+import { FileUpload, Icon, Text, Button, UseFileUploadReturn } from "@chakra-ui/react";
 import { LuUpload, LuX } from "react-icons/lu";
 import {
   LuFile,
@@ -20,10 +20,8 @@ import {
 
 import { Float, HStack, VStack } from "@chakra-ui/react";
 type Props = {
-  files: File[];
-  setFiles: (files: File[]) => void;
+  value: UseFileUploadReturn;
 };
-import * as LuIcons from "react-icons/lu";
 const mimeIconMap: Record<string, React.ElementType> = {
   "image/": LuFileImage,
   "audio/": LuFileAudio2,
@@ -70,17 +68,15 @@ export function getFileIconByMime(mime: string) {
     else Icon = LuFileWarning;
   }
 
-  // Return JSX element directly
   return <Icon className="w-5 h-5 text-gray-600" />;
 }
 
-export default function FileInput({ files, setFiles }: Props) {
+export default function FileInput({ value }: Props) {
   return (
-    <FileUpload.Root
+    <FileUpload.RootProvider
+      value={value}
       maxW="xl"
       alignItems="stretch"
-      maxFiles={10}
-      onFileChange={(details) => setFiles(details.acceptedFiles)}
     >
       <FileUpload.HiddenInput />
       <FileUpload.Dropzone>
@@ -100,13 +96,13 @@ export default function FileInput({ files, setFiles }: Props) {
           </FileUpload.Trigger>
         </FileUpload.DropzoneContent>
       </FileUpload.Dropzone>
-      {files.length > 0 && (
+      {value.acceptedFiles.length > 0 && (
         <VStack mt="6" gap="3" align="stretch" w="full">
           <Text fontSize="md" fontWeight="semibold">
             Uploaded Files
           </Text>
           <FileUpload.ItemGroup gap="3">
-            {files.map((file, i) => (
+            {value.acceptedFiles.map((file, i) => (
               <FileUpload.Item key={i} file={file} w="full">
                 <HStack
                   gap="3"
@@ -122,10 +118,10 @@ export default function FileInput({ files, setFiles }: Props) {
                         borderRadius="md"
                       />
                     )) || (
-                      <Icon fontSize="lg" color="fg.muted">
-                        {getFileIconByMime(file.type || "unknown")}
-                      </Icon>
-                    )}
+                        <Icon fontSize="lg" color="fg.muted">
+                          {getFileIconByMime(file.type || "unknown")}
+                        </Icon>
+                      )}
                   </FileUpload.ItemPreview>
 
                   <FileUpload.ItemContent flex="1">
@@ -144,6 +140,6 @@ export default function FileInput({ files, setFiles }: Props) {
           </FileUpload.ItemGroup>
         </VStack>
       )}
-    </FileUpload.Root>
+    </FileUpload.RootProvider>
   );
 }

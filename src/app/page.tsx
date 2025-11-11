@@ -33,6 +33,8 @@ import {
   FormatByte,
   Box,
   Spinner,
+  Dialog,
+  useFileUpload
 } from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import Header from "./header";
@@ -70,7 +72,9 @@ export default function Page() {
   const [selectedObject, setSelectedObject] = useState("");
   const bucket = useRef("");
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const fileUpload = useFileUpload({
+    maxFiles: 10,
+  })
   const [objectList, setObjectList] = useState<_Object[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<
     Record<string, boolean>
@@ -128,18 +132,6 @@ export default function Page() {
       }
     }
   }, [savedInformation]);
-  const getObjectLink = (object: _Object): string => {
-    return (
-      endpoint?.protocol +
-      "//" +
-      endpoint?.hostname +
-      "/" +
-      bucket?.current +
-      "/" +
-      object.Key
-    );
-  };
-
   type TreeNode = {
     name: string;
     key: string; // full key for files, prefix for folders
@@ -150,80 +142,7 @@ export default function Page() {
   };
 
   const buildTree = (objects: _Object[]): TreeNode[] => {
-    const rootMap: Map<string, TreeNode> = new Map();
-
-    const ensureFolder = (pathParts: string[], accumKey: string) => {
-      let parentMap = rootMap;
-      let currentKey = "";
-      for (let i = 0; i < pathParts.length; i++) {
-        const part = pathParts[i];
-        currentKey = currentKey ? `${currentKey}/${part}` : part;
-        const folderKey = currentKey + "/";
-        if (!parentMap.has(folderKey)) {
-          parentMap.set(folderKey, {
-            name: part,
-            key: folderKey,
-            isFolder: true,
-            children: [],
-          });
-        }
-        const node = parentMap.get(folderKey)!;
-        if (!node.children) node.children = [];
-        // move into children map by creating a pseudo map stored on the node via symbol
-        // we'll instead collect children later by walking objects
-      }
-    };
-
-    // Simpler approach: create a nested object tree by splitting keys
-    const tree: Record<string, TreeNode> = {};
-
-    const insert = (obj: _Object) => {
-      if (!obj.Key) return;
-      const parts = obj.Key.split("/");
-      let currChildren = tree;
-      let prefix = "";
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        const isLast = i === parts.length - 1;
-        const nodeKey = prefix ? `${prefix}/${part}` : part;
-        const folderKey =
-          isLast && obj.Key.endsWith("/")
-            ? nodeKey + "/"
-            : isLast
-              ? nodeKey
-              : nodeKey + "/";
-        if (!currChildren[folderKey]) {
-          currChildren[folderKey] = {
-            name: part,
-            key: isLast && !obj.Key.endsWith("/") ? nodeKey : folderKey,
-            isFolder: !isLast || obj.Key.endsWith("/"),
-            children: [],
-            size: isLast && !obj.Key.endsWith("/") ? obj.Size : undefined,
-            lastModified:
-              isLast && obj.LastModified
-                ? new Date(obj.LastModified)
-                : undefined,
-          };
-        }
-        const node = currChildren[folderKey];
-        // prepare for next level: use a map keyed by folderKey for children
-        if (!node.children) node.children = [];
-        // find or create next map container by using a temporary map on node via a symbol is complex; instead
-        // we'll represent tree as nested arrays by traversing existing children
-        // if not last, move into child container represented by an object mapping name->node for easier inserts
-        if (isLast) return;
-        // find child container map by building a temporary map of children keyed by their key
-        const nextMap: Record<string, TreeNode> = {};
-        node.children.forEach((c) => (nextMap[c.key] = c));
-        prefix = nodeKey;
-        // now set currChildren pointing to nextMap so next iteration can insert into it
-        currChildren = nextMap;
-      }
-    };
-
-    // Because the above approach using dynamic maps is getting convoluted, implement a straightforward recursive builder
     const rootNodes: TreeNode[] = [];
-
     const addToNodes = (
       nodes: TreeNode[],
       parts: string[],
@@ -234,11 +153,6 @@ export default function Page() {
       const [head, ...rest] = parts;
       const isLast = rest.length === 0;
       const folder = isLast && fullKey.endsWith("/") ? true : !isLast;
-      const nodeKey = isLast
-        ? fullKey.endsWith("/")
-          ? fullKey
-          : fullKey
-        : `${head}/`;
       let node = nodes.find((n) => n.name === head && n.isFolder === folder);
       if (!node) {
         node = {
@@ -285,7 +199,6 @@ export default function Page() {
   const renderNode = (
     node: TreeNode,
     depth = 0,
-    index?: number,
   ): React.ReactNode => {
     const paddingLeft = `${depth * 20}px`;
     if (node.isFolder) {
@@ -529,9 +442,9 @@ export default function Page() {
               <DialogHeader>
                 <DialogTitle>Upload File</DialogTitle>
               </DialogHeader>
-              <DialogCloseTrigger asChild>
+              <Dialog.CloseTrigger asChild>
                 <CloseButton size="sm" onClick={onUploadFileClose} />
-              </DialogCloseTrigger>
+              </Dialog.CloseTrigger>
               <DialogBody pb={6}>
                 <Field label="Folder Name / Prefix (Optional)">
                   <Input
@@ -541,14 +454,14 @@ export default function Page() {
                   />
                 </Field>
                 <Field label="File (browse or drag)" marginTop={5}>
-                  <FileInput files={uploadFiles} setFiles={setUploadFiles} />
+                  <FileInput value={fileUpload} />
                 </Field>
               </DialogBody>
 
               <DialogFooter>
                 <Button
                   onClick={async () => {
-                    if (!uploadFiles) {
+                    if (!fileUpload.acceptedFiles) {
                       toaster.create({
                         title: "Input Error",
                         description: "Ensure that required inputs are filled",
@@ -558,7 +471,7 @@ export default function Page() {
                       return;
                     }
                     setIsLoading(true);
-                    for (const uploadFile of uploadFiles) {
+                    for (const uploadFile of fileUpload.acceptedFiles) {
                       let key = "";
                       if (fileFolderName) {
                         key = fileFolderName;
@@ -568,10 +481,12 @@ export default function Page() {
                       }
                       key += uploadFile.name;
                       if (uploadFile) {
+                        const arrayBuffer = await uploadFile.arrayBuffer();
+                        const body = new Uint8Array(arrayBuffer);
                         const command = new PutObjectCommand({
                           Bucket: bucket.current,
                           Key: key,
-                          Body: await uploadFile.bytes(),
+                          Body: body,
                           ContentType: uploadFile.type,
                         });
                         setIsLoading(true);
@@ -586,7 +501,6 @@ export default function Page() {
                             });
                           })
                           .finally(() => {
-                            setUploadFiles([]);
                             loadFileList();
                           });
                         onUploadFileClose();
