@@ -26,6 +26,7 @@ interface UploadFileDialogProps {
   bucket: string;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  prefix?: string;
 }
 
 export function UploadFileDialog({
@@ -37,6 +38,7 @@ export function UploadFileDialog({
   bucket,
   isLoading,
   setIsLoading,
+  prefix,
 }: UploadFileDialogProps) {
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
@@ -57,7 +59,7 @@ export function UploadFileDialog({
 
     try {
       for (const file of fileUpload.acceptedFiles) {
-        await uploadFile(client, bucket, file, folderName || undefined);
+        await uploadFile(client, bucket, file, folderName || undefined, prefix);
       }
 
       onUploadSuccess();

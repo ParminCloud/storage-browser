@@ -24,6 +24,7 @@ interface FileBrowserTableProps {
   onPageChange: (newPage: number) => void;
   hasNext: boolean;
   hasPrev: boolean;
+  prefix?: string;
 }
 
 export function FileBrowserTable({
@@ -38,6 +39,7 @@ export function FileBrowserTable({
   onPageChange,
   hasNext,
   hasPrev,
+  prefix,
 }: FileBrowserTableProps) {
   return (
     <Table.ScrollArea marginBottom={10}>
@@ -65,6 +67,7 @@ export function FileBrowserTable({
                   client,
                   endpoint,
                   onDeleteClick,
+                  prefix,
                 })}
               </React.Fragment>
             ));

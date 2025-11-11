@@ -10,10 +10,25 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { toaster } from "@/components/ui/toaster";
 
+function getKeyWithPrefix(
+  prefix: string | undefined,
+  key: string,
+): string {
+  if (prefix) {
+    let adjustedPrefix = prefix;
+    if (!adjustedPrefix.endsWith("/")) {
+      adjustedPrefix += "/";
+    }
+    return adjustedPrefix + key;
+  }
+  return key;
+}
+
 export async function downloadObject(
   client: S3Client | null,
   bucket: string,
   key: string,
+  prefix?: string,
 ): Promise<void> {
   if (!client) return;
 
@@ -27,7 +42,7 @@ export async function downloadObject(
   try {
     const command = new GetObjectCommand({
       Bucket: bucket,
-      Key: key,
+      Key: getKeyWithPrefix(prefix, key),
     });
 
     const response = await client.send(command);
@@ -61,13 +76,14 @@ export async function deleteObject(
   client: S3Client | null,
   bucket: string,
   key: string,
+  prefix?: string,
 ): Promise<void> {
   if (!client) return;
 
   try {
     const command = new DeleteObjectCommand({
       Bucket: bucket,
-      Key: key,
+      Key: getKeyWithPrefix(prefix, key),
     });
 
     await client.send(command);
@@ -85,6 +101,7 @@ export async function createFolder(
   client: S3Client | null,
   bucket: string,
   folderName: string,
+  prefix?: string,
 ): Promise<void> {
   if (!client) return;
 
@@ -96,7 +113,7 @@ export async function createFolder(
   try {
     const command = new PutObjectCommand({
       Bucket: bucket,
-      Key: name,
+      Key: getKeyWithPrefix(prefix, name),
     });
 
     await client.send(command);
@@ -115,6 +132,7 @@ export async function uploadFile(
   bucket: string,
   file: File,
   folderPrefix?: string,
+  prefix?: string,
 ): Promise<void> {
   if (!client) return;
 
@@ -133,7 +151,7 @@ export async function uploadFile(
 
     const command = new PutObjectCommand({
       Bucket: bucket,
-      Key: key,
+      Key: getKeyWithPrefix(prefix, key),
       Body: body,
       ContentType: file.type,
     });
@@ -153,6 +171,7 @@ export async function listObjects(
   client: S3Client | null,
   bucket: string,
   token?: string,
+  prefix?: string,
 ): Promise<{
   contents: _Object[];
   nextToken?: string;
@@ -160,16 +179,27 @@ export async function listObjects(
   if (!client) {
     return { contents: [] };
   }
-
+  let hasPrefix = false;
+  if (prefix && prefix.length > 0) {
+    hasPrefix = true;
+    prefix = prefix.endsWith("/") ? prefix : prefix + "/";
+  }
   try {
     const command = new ListObjectsV2Command({
       Bucket: bucket,
       MaxKeys: 5,
       ContinuationToken: token,
+      Prefix: prefix,
     });
 
     const { Contents, NextContinuationToken } = await client.send(command);
-
+    if (hasPrefix && Contents) {
+      for (const content of Contents) {
+        if (content.Key && prefix) {
+          content.Key = content.Key.substring(prefix.length);
+        }
+      }
+    }
     return {
       contents: Contents || [],
       nextToken: NextContinuationToken,
@@ -190,6 +220,7 @@ export async function generatePresignedUrl(
   client: S3Client | null,
   bucket: string,
   key: string,
+  prefix?: string,
 ): Promise<string | null> {
   if (!client) return null;
 
@@ -198,7 +229,7 @@ export async function generatePresignedUrl(
       client,
       new GetObjectCommand({
         Bucket: bucket,
-        Key: key,
+        Key: getKeyWithPrefix(prefix, key),
       }),
     );
 

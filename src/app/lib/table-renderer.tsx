@@ -23,6 +23,7 @@ export interface TableRowRendererProps {
   client: any;
   endpoint: Endpoint | null;
   onDeleteClick: (key: string) => void;
+  prefix?: string;
 }
 
 function FolderRow({
@@ -83,6 +84,7 @@ function FileRow({
   client,
   endpoint,
   onDeleteClick,
+  prefix,
 }: {
   node: TreeNode;
   depth: number;
@@ -90,15 +92,16 @@ function FileRow({
   client: any;
   endpoint: Endpoint | null;
   onDeleteClick: (key: string) => void;
+  prefix?: string;
 }) {
   const paddingLeft = `${depth * 20}px`;
 
   const handleDownload = () => {
-    downloadObject(client, bucket, node.key);
+    downloadObject(client, bucket, node.key, prefix);
   };
 
   const handlePresignedUrl = async () => {
-    const url = await generatePresignedUrl(client, bucket, node.key);
+    const url = await generatePresignedUrl(client, bucket, node.key, prefix);
     if (url) {
       navigator.clipboard.writeText(url).then(() => {
         toaster.create({
@@ -202,6 +205,7 @@ export function renderTableNode(
       client={props.client}
       endpoint={props.endpoint}
       onDeleteClick={props.onDeleteClick}
+      prefix={props.prefix}
     />
   );
 }

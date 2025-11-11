@@ -11,6 +11,7 @@ export type TreeNode = {
 export type LoginPayload = {
   client: any;
   bucket: string;
+  prefix?: string;
 };
 
 export type UploadFileState = {

@@ -5,14 +5,12 @@ import {
   Heading,
   Flex,
   useDisclosure,
-  IconButton,
   Icon,
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import LoginDialog from "./loginDialog";
 import { S3Client } from "@aws-sdk/client-s3";
 import { MdStorage } from "react-icons/md";
-import { useTheme } from "next-themes";
 import { Button } from "@chakra-ui/react";
 import { ColorModeButton } from "@/components/ui/color-mode";
 const Header = ({
@@ -30,7 +28,6 @@ const Header = ({
     onClose: onDialogClose,
   } = useDisclosure();
   const handleToggle = () => (open ? onClose() : onOpen());
-  const { theme, setTheme } = useTheme();
   const onLoginFormOpen = () => {
     if (user !== null) {
       localStorage.removeItem("loginInformation");

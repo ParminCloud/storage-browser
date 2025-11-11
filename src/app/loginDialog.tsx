@@ -54,6 +54,9 @@ const LoginDialog = ({
   const [secretKey, setSecretKey] = React.useState(
     savedInformation?.secretKey || "",
   );
+  const [prefix, setPrefix] = React.useState(
+    savedInformation?.prefix || "",
+  );
   const [endpoint, setEndpoint] =
     React.useState<RadioGroupValueChangeDetails | null>(
       savedInformation?.endpoint || null,
@@ -97,6 +100,13 @@ const LoginDialog = ({
                 value={bucket}
                 onChange={(ev) => setValueFromEvent(ev, setBucket)}
                 placeholder="Bucket"
+              />
+            </Field>
+            <Field label="Prefix / Folder" mt={4}>
+              <Input
+                value={prefix}
+                onChange={(ev) => setValueFromEvent(ev, setPrefix)}
+                placeholder="Prefix / Folder (Optional)"
               />
             </Field>
 
@@ -146,6 +156,7 @@ const LoginDialog = ({
                       accessKey,
                       secretKey,
                       bucket,
+                      prefix
                     }),
                   );
                 } else {

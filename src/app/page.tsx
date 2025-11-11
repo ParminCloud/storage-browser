@@ -16,7 +16,6 @@ import { Endpoint } from "@smithy/types";
 import Header from "./header";
 import DeleteObject from "./deleteObject";
 import { getClient, getSavedCredentials } from "./utils";
-import { toaster } from "@/components/ui/toaster";
 import { FileBrowserToolbar } from "./components/FileBrowserToolbar";
 import { FileBrowserTable } from "./components/FileBrowserTable";
 import { UploadFileDialog } from "./components/UploadFileDialog";
@@ -33,6 +32,7 @@ export default function Page() {
   const userUpstreamRef = useRef<null | S3Client>(null);
   const [selectedObject, setSelectedObject] = useState("");
   const bucket = useRef("");
+  const prefix = useRef<undefined | string>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const fileUpload = useFileUpload({ maxFiles: 10 });
   const [objectList, setObjectList] = useState<_Object[]>([]);
@@ -93,6 +93,9 @@ export default function Page() {
   const onLogin = (payload: LoginPayload) => {
     bucket.current = payload.bucket;
     user.current = payload.client;
+    prefix.current = payload.prefix;
+            console.log("Listing objects with prefix:", prefix);
+
     loadFileList();
   };
 
@@ -140,7 +143,7 @@ export default function Page() {
     setIsLoading(true);
 
     try {
-      const result = await listObjects(user.current, bucket.current, token);
+      const result = await listObjects(user.current, bucket.current, token, prefix.current);
       setObjectList(result.contents);
       setNextToken(result.nextToken);
     } finally {
@@ -154,7 +157,7 @@ export default function Page() {
     setIsLoading(true);
 
     try {
-      await performDelete(user.current, bucket.current, selectedObject);
+      await performDelete(user.current, bucket.current, selectedObject, prefix.current);
       await loadFileList();
     } finally {
       setIsLoading(false);
@@ -173,7 +176,7 @@ export default function Page() {
       });
 
       if (client) {
-        onLogin({ client, bucket: savedInformation.bucket });
+        onLogin({ client, bucket: savedInformation.bucket, prefix: savedInformation.prefix || undefined });
       }
     }
   }, [savedInformation]);
@@ -205,6 +208,7 @@ export default function Page() {
         bucket={bucket.current}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        prefix={prefix.current}
       />
 
       {/* Create Folder Dialog */}
@@ -216,6 +220,7 @@ export default function Page() {
         bucket={bucket.current}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
+        prefix={prefix.current}
       />
 
       {/* Delete Dialog */}
@@ -242,6 +247,7 @@ export default function Page() {
           onPageChange={handlePageChange}
           hasNext={!!nextToken}
           hasPrev={prevTokens.length > 0}
+          prefix={prefix.current}
         />
       ) : (
         <Alert status="warning" title="No Data">

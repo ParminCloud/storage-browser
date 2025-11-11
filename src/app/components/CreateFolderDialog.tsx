@@ -24,6 +24,7 @@ interface CreateFolderDialogProps {
   bucket: string;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  prefix?: string;
 }
 
 export function CreateFolderDialog({
@@ -34,6 +35,7 @@ export function CreateFolderDialog({
   bucket,
   isLoading,
   setIsLoading,
+  prefix,
 }: CreateFolderDialogProps) {
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
@@ -53,7 +55,7 @@ export function CreateFolderDialog({
     setIsLoading(true);
 
     try {
-      await createFolder(client, bucket, folderName);
+      await createFolder(client, bucket, folderName, prefix);
       onFolderCreated();
       onClose();
       setFolderName(null);
