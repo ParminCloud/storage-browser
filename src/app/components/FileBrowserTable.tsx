@@ -21,7 +21,9 @@ interface FileBrowserTableProps {
   endpoint: Endpoint | null;
   onDeleteClick: (key: string) => void;
   page: number;
-  onPageChange: (newPage: number, token?: string) => void;
+  onPageChange: (newPage: number) => void;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 export function FileBrowserTable({
@@ -34,6 +36,8 @@ export function FileBrowserTable({
   onDeleteClick,
   page,
   onPageChange,
+  hasNext,
+  hasPrev,
 }: FileBrowserTableProps) {
   return (
     <Table.ScrollArea marginBottom={10}>
@@ -85,8 +89,8 @@ export function FileBrowserTable({
           }}
           pageSize={15}
         >
-          <PaginationPrevTrigger />
-          <PaginationNextTrigger />
+          <PaginationPrevTrigger disabled={!hasPrev} />
+          <PaginationNextTrigger disabled={!hasNext} />
         </PaginationRoot>
       </Center>
     </Table.ScrollArea>

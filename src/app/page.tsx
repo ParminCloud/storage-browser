@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useRef, useState, RefObject, useEffect } from "react";
-import { Box, Spinner, Center, useDisclosure, useFileUpload } from "@chakra-ui/react";
+import {
+  Box,
+  Spinner,
+  Center,
+  useDisclosure,
+  useFileUpload,
+} from "@chakra-ui/react";
 import { S3Client, _Object } from "@aws-sdk/client-s3";
 import { Alert } from "@/components/ui/alert";
 import { Endpoint } from "@smithy/types";
@@ -16,7 +22,10 @@ import { FileBrowserTable } from "./components/FileBrowserTable";
 import { UploadFileDialog } from "./components/UploadFileDialog";
 import { CreateFolderDialog } from "./components/CreateFolderDialog";
 import { PageFooter } from "./components/PageFooter";
-import { listObjects, deleteObject as performDelete } from "./lib/s3-operations";
+import {
+  listObjects,
+  deleteObject as performDelete,
+} from "./lib/s3-operations";
 import { LoginPayload } from "./types";
 
 export default function Page() {
@@ -27,7 +36,9 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const fileUpload = useFileUpload({ maxFiles: 10 });
   const [objectList, setObjectList] = useState<_Object[]>([]);
-  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [expandedFolders, setExpandedFolders] = useState<
+    Record<string, boolean>
+  >({});
   const deleteCancelRef = useRef(null);
   const [endpoint, setEndpoint] = useState<null | Endpoint>(null);
   const [savedInformation] = useState(getSavedCredentials());
@@ -94,7 +105,26 @@ export default function Page() {
     onDeleteOpen();
   };
 
-  const handlePageChange = (newPage: number, token?: string) => {
+  const handlePageChange = (newPage: number) => {
+    let token: string | undefined = undefined;
+    if (newPage > page) {
+      // moving forward
+      if (nextToken) {
+        setPrevTokens((prev) => [...prev, currentToken]);
+        setCurrentToken(nextToken);
+        token = nextToken;
+      }
+    } else if (newPage < page) {
+      // moving backward
+      if (prevTokens.length > 0) {
+        const previousTokens = [...prevTokens];
+        const previousToken = previousTokens.pop();
+        setPrevTokens(previousTokens);
+        setCurrentToken(previousToken);
+        token = previousToken;
+      }
+    }
+
     loadFileList(token).then(() => setPage(newPage));
   };
 
@@ -210,6 +240,8 @@ export default function Page() {
           onDeleteClick={handleDeleteClick}
           page={page}
           onPageChange={handlePageChange}
+          hasNext={!!nextToken}
+          hasPrev={prevTokens.length > 0}
         />
       ) : (
         <Alert status="warning" title="No Data">

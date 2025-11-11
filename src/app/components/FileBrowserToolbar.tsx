@@ -22,11 +22,7 @@ export function FileBrowserToolbar({
   }
 
   return (
-    <Grid
-      templateColumns="100fr 1fr 1fr"
-      gap="1"
-      padding={2}
-    >
+    <Grid templateColumns="100fr 1fr 1fr" gap="1" padding={2}>
       <GridItem w="100%">
         <Button
           width="100%"

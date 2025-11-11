@@ -1,4 +1,10 @@
-import { FileUpload, Icon, Text, Button, UseFileUploadReturn } from "@chakra-ui/react";
+import {
+  FileUpload,
+  Icon,
+  Text,
+  Button,
+  UseFileUploadReturn,
+} from "@chakra-ui/react";
 import { LuUpload, LuX } from "react-icons/lu";
 import {
   LuFile,
@@ -73,11 +79,7 @@ export function getFileIconByMime(mime: string) {
 
 export default function FileInput({ value }: Props) {
   return (
-    <FileUpload.RootProvider
-      value={value}
-      maxW="xl"
-      alignItems="stretch"
-    >
+    <FileUpload.RootProvider value={value} maxW="xl" alignItems="stretch">
       <FileUpload.HiddenInput />
       <FileUpload.Dropzone>
         <FileUpload.DropzoneContent w="full">
@@ -118,10 +120,10 @@ export default function FileInput({ value }: Props) {
                         borderRadius="md"
                       />
                     )) || (
-                        <Icon fontSize="lg" color="fg.muted">
-                          {getFileIconByMime(file.type || "unknown")}
-                        </Icon>
-                      )}
+                      <Icon fontSize="lg" color="fg.muted">
+                        {getFileIconByMime(file.type || "unknown")}
+                      </Icon>
+                    )}
                   </FileUpload.ItemPreview>
 
                   <FileUpload.ItemContent flex="1">

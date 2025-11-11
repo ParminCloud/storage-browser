@@ -6,10 +6,7 @@ import { FaArrowDown, FaArrowRight } from "react-icons/fa";
 import { LuFolderClosed, LuFolderOpen } from "react-icons/lu";
 import moment from "moment";
 import { Table } from "@chakra-ui/react";
-import {
-  downloadObject,
-  generatePresignedUrl,
-} from "./s3-operations";
+import { downloadObject, generatePresignedUrl } from "./s3-operations";
 import { ClipboardIconButton, ClipboardRoot } from "@/components/ui/clipboard";
 import { IoMdCloudDownload } from "react-icons/io";
 import { MdDelete } from "react-icons/md";
@@ -139,10 +136,7 @@ function FileRow({
           width={{ base: "full", md: "auto" }}
           mt={{ base: 4, md: 0 }}
         >
-          <IconButton
-            onClick={handleDownload}
-            aria-label="Download Object"
-          >
+          <IconButton onClick={handleDownload} aria-label="Download Object">
             <IoMdCloudDownload />
           </IconButton>
 
@@ -157,11 +151,7 @@ function FileRow({
             <ClipboardIconButton size="md" variant="solid" />
           </ClipboardRoot>
 
-          <IconButton
-            size="md"
-            variant="solid"
-            onClick={handlePresignedUrl}
-          >
+          <IconButton size="md" variant="solid" onClick={handlePresignedUrl}>
             <FaFileSignature />
           </IconButton>
         </Stack>
