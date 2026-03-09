@@ -28,3 +28,9 @@ export type PaginationState = {
   nextToken?: string;
   prevTokens: Array<undefined | string>;
 };
+
+export type storageBucketRegion = {
+  endpoint: string;
+  location: string;
+  storage_type: string;
+}

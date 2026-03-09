@@ -21,10 +21,12 @@ import {
   RadioGroupValueChangeDetails,
   Fieldset,
   Box,
+  Code,
 } from "@chakra-ui/react";
 import { getClient, getSavedCredentials, setValueFromEvent } from "./utils";
 import { S3Client } from "@aws-sdk/client-s3";
 import { CloseButton } from "@/components/ui/close-button";
+import { storageBucketRegion } from "@/app/types";
 
 const LoginDialog = ({
   open,
@@ -36,12 +38,15 @@ const LoginDialog = ({
   onClose: () => void;
   onLogin: ({ client, bucket }: { client: S3Client; bucket: string }) => void;
 }) => {
+  const [endpoints, setEndpoints] = React.useState<storageBucketRegion[]>([]);
+
+  React.useEffect(() => {
+    fetch("https://api.parmin.cloud/api_v1.0/storage-buckets/regions")
+      .then(res => res.json())
+      .then(setEndpoints);
+  }, []);
   const initialRef = React.useRef(null);
   const finalRef = React.useRef(null);
-  const endpoints: Record<string, string> = {
-    "https://sas.amin.parminstorage.ir":
-      "https://sas.amin.parminstorage.ir (Amin, SAS Storage)",
-  };
   const savedInformation = getSavedCredentials();
   const [saveToLocal, setSaveToLocal] = React.useState(false);
   React.useEffect(
@@ -120,10 +125,16 @@ const LoginDialog = ({
               </Fieldset.Legend>
 
               <Stack direction="column">
-                {Object.keys(endpoints).map((key, _) => {
+                {endpoints.map((endpoint, _) => {
                   return (
-                    <Radio key={key} value={key}>
-                      {endpoints[key]}
+                    <Radio key={`https://${endpoint.endpoint}`} value={`https://${endpoint.endpoint}`} gap="4" paddingTop="2%" alignItems="flex-start">
+                      <Box fontWeight="medium">{endpoint.location.replace(/\b\w/g, c => c.toUpperCase())}</Box>
+                      <Box fontSize="sm" color="fg.muted">
+                        {endpoint.storage_type.toUpperCase().replaceAll("NVME", "NVMe")}
+                      </Box>
+                      <Code fontSize="xs" mt="1">
+                        {endpoint.endpoint}
+                      </Code>
                     </Radio>
                   );
                 })}
